@@ -1,0 +1,629 @@
+{
+ "readme_warnings": {
+  "tier1": [
+   {
+    "head": "Ontology identifiers here are model-emitted and largely unverified.",
+    "body": "Roughly 42% of Tier 1 identifiers do not denote the entity on their own row (`id_denotes_entity_rate` = 0.578, a lower bound). The model wrote them; nothing looked them up. Every one is tagged `ontology_id_verification == 'unverified_model_emitted'`. **Do not treat a non-null identifier here as an authority-grounded mapping.** Tiers 3 and 4 derive identifiers from names by resolver lookup and score 0.986 / 0.998."
+   },
+   {
+    "head": "Paper count is 3,129 here, not the 3,121 of the Tier 1 v1 release.",
+    "body": "The v1 release counted `canonical_pmid.nunique()`, which merged 8 duplicate-title records. That column does not exist in the harmonized corpus. Both numbers are correct under their own basis; this package uses `pmid.nunique()` throughout."
+   },
+   {
+    "head": "`canonical_entity` is empty in this package.",
+    "body": "Cross-tier canonicalization was applied to Tiers 3 and 4 only. The lookup covering all five packages ships as `data/entity_vocabulary_crosstier.parquet` — join on `entity` to canonicalize Tier 1 yourself. It mutates no rows by design."
+   }
+  ],
+  "tier2a": [
+   {
+    "head": "This is one half of Tier 2. Part B is a separate package.",
+    "body": "Tier 2 was extracted in two waves. This package is the first wave: {n_chunks} chunks, {findings} findings, {papers} papers. The two waves share **zero papers** and their chunk ids interleave, so neither is a clean 'earlier literature' or 'later literature' split — the division is operational, not topical. Both parts cover the same nine themes. Pool them freely: they came from one pipeline with one prompt, and every column has identical semantics across the two."
+   },
+   {
+    "head": "`ontology_id_source == 'unresolved_nulled'` means the identifier was KEPT.",
+    "body": "In Tiers 3 and 4 the same value means the identifier was NULLED. The obvious filter `df[df.ontology_id_source != 'unresolved_nulled']` silently drops Tier 2 rows that DO carry identifiers. Use `ontology_id_verification` instead. See COMPARABILITY.md, Trap 3."
+   },
+   {
+    "head": "Ontology identifiers here are model-emitted.",
+    "body": "`id_denotes_entity_rate` for Tier 2 is 0.708 — roughly 29% of identifiers do not denote the entity on their row (a lower bound). **That figure was measured on Tier 2 as a whole, from a 270-row adjudicated sample spanning both waves, and is inherited by this package; no per-wave rate exists.** Tier 2 has the HIGHEST identifier coverage and the SECOND-WORST identifier correctness in the corpus. See COMPARABILITY.md, Trap 1."
+   },
+   {
+    "head": "`canonical_entity` is empty in this package.",
+    "body": "Join `data/entity_vocabulary_crosstier.parquet` on `entity` to canonicalize."
+   }
+  ],
+  "tier3": [
+   {
+    "head": "Identifiers here are authority-derived and score 0.986.",
+    "body": "The extraction model emitted names only; a resolver looked every identifier up afterwards. This is the property Tiers 1 and 2 lack. All nine invariants pass."
+   },
+   {
+    "head": "40 rows are flagged `query_contamination`.",
+    "body": "Six papers were pulled in by the ambiguous abbreviation 'ASD' — adult spinal deformity and atrial septal defect, not autism. Filter with `df[~df.query_contamination.fillna(False)]`. The 28 wrong-ASD PMIDs are listed in `scope/tier3_offtopic_pmids.csv`. Note that `query_contamination` means something DIFFERENT in Tier 4 — see COMPARABILITY.md."
+   },
+   {
+    "head": "Verifiability is the lowest in the corpus at 12.22%.",
+    "body": "Tier 3 had the highest full-text retrieval success (69% of papers), and full text was discarded after extraction — so its very success is why so few of its quotes can be re-checked. A 97-paper pilot re-fetched 97/97 from Europe PMC at 98.65% traceability, so this is recoverable."
+   }
+  ],
+  "tier4": [
+   {
+    "head": "Every quote in this package is verifiable — the only package where that is true.",
+    "body": "Body text was retained in gzipped chunk archives, so all 15,646 rows can be re-checked against their own source. {corpus_wide} Traceability measured 99.09% with 0% wrong-paper false positives."
+   },
+   {
+    "head": "Identifiers are authority-derived and score 0.998 — the highest in the corpus.",
+    "body": "Note that Tier 4 also has the LOWEST identifier coverage (10.3% of rows). Coverage and correctness rank the packages in opposite orders; see COMPARABILITY.md, Trap 1."
+   },
+   {
+    "head": "1,960 rows are flagged `screen_verdict_uncertain`, and coverage has two true values.",
+    "body": "Tier 4 papers passed an LLM+rule screen because its themes (migraine, Sjögren's, PANS/PANDAS, hypermobility spectrum) sit at the corpus boundary. Coverage is 85.97% of screened papers and 74.57% of the pre-screening universe. Both are true; state which you mean. Excluded PMIDs with reasons are in `scope/`."
+   }
+  ],
+  "tier2b": [
+   {
+    "head": "This is one half of Tier 2. Part A is a separate package.",
+    "body": "Tier 2 was extracted in two waves. This package is the second wave: {n_chunks} chunks, {findings} findings, {papers} papers. The two waves share **zero papers** and their chunk ids interleave, so neither is a clean 'earlier literature' or 'later literature' split — the division is operational, not topical. Both parts cover the same nine themes. Pool them freely: they came from one pipeline with one prompt, and every column has identical semantics across the two."
+   },
+   {
+    "head": "`ontology_id_source == 'unresolved_nulled'` means the identifier was KEPT.",
+    "body": "In Tiers 3 and 4 the same value means the identifier was NULLED. The obvious filter `df[df.ontology_id_source != 'unresolved_nulled']` silently drops Tier 2 rows that DO carry identifiers. Use `ontology_id_verification` instead. See COMPARABILITY.md, Trap 3."
+   },
+   {
+    "head": "Ontology identifiers here are model-emitted.",
+    "body": "`id_denotes_entity_rate` for Tier 2 is 0.708 — roughly 29% of identifiers do not denote the entity on their row (a lower bound). **That figure was measured on Tier 2 as a whole, from a 270-row adjudicated sample spanning both waves, and is inherited by this package; no per-wave rate exists.** Tier 2 has the HIGHEST identifier coverage and the SECOND-WORST identifier correctness in the corpus. See COMPARABILITY.md, Trap 1."
+   },
+   {
+    "head": "`canonical_entity` is empty in this package.",
+    "body": "Join `data/entity_vocabulary_crosstier.parquet` on `entity` to canonicalize."
+   }
+  ]
+ },
+ "readme_warning_fidelity": {
+  "head": "Scientific fidelity is UNMEASURED.",
+  "body": "Everything verified in `qa/` is well-formedness: quotes trace to source, identifiers carry authority provenance, invariants hold. **Nobody has checked that the extracted science is correctly interpreted.** That needs a human reader — an LLM adjudicator shares the extractor's blind spots. Treat every row as a pointer to a paper you should read, not as a fact."
+ },
+ "invariant_failure_notes": {
+  "id_provenance": {
+   "tier1": "4,373 rows carry a resolved ontology id and 2,681 carry an HGNC id, with no source tag. Tier 1 predates the provenance-tag convention entirely — `ontology_id_source` is null for every Tier 1 row. The identifiers are model-emitted and existence-checked only; the harmonized columns `ontology_id_verification` and `ontology_id_match_mode` record that fact explicitly. This is a KNOWN, DOCUMENTED property of Tier 1, not a defect introduced by packaging.",
+   "tier2a": "1,243 rows carry a resolved ontology id and 5,714 an HGNC id whose source tag is absent or reads `unresolved_nulled` — which in Tier 2 means the identifier was KEPT (see COMPARABILITY.md, Trap 3). Tier 2's tag vocabulary (`authority_lookup_B/C/D`) records neither ontology nor match mode. KNOWN and DOCUMENTED; use the harmonized verification columns instead.",
+   "tier2b": "999 rows carry a resolved ontology id and 5,232 an HGNC id whose source tag is absent or reads `unresolved_nulled` — which in Tier 2 means the identifier was KEPT (see COMPARABILITY.md, Trap 3). KNOWN and DOCUMENTED; use the harmonized verification columns instead."
+  },
+  "no_model_emitted_ids": {
+   "tier2a": "11 rows from a single paper (PMID 41449404) carry GO identifiers inside the free-text `pathway_or_mechanism` field, e.g. 'Presynaptic modulation of chemical synaptic transmission (GO:0099171)'. The model wrote them into a prose field. They are NOT used as identifiers anywhere — `pathway_id` was dropped from the schema — so nothing downstream consumes them. Left verbatim rather than stripped: the rule is to flag, never silently repair. Filter with a regex on `pathway_or_mechanism` if a clean prose field matters to you.",
+   "tier2b": "1 row from PMID 40338225 carries GO identifiers inside the free-text `pathway_or_mechanism` field ('Pathogen detection pathway (GO:0016045, GO:0016032, GO:0098543)'). Not consumed as an identifier anywhere. Left verbatim rather than stripped — flag, never silently repair."
+  }
+ },
+ "invariant_failure_footer": [
+  "The suite was written during Tier 3 and encodes conventions Tiers 1 and 2 predate. These are",
+  "**pre-existing, characterized properties of the earlier extraction passes**, not damage from",
+  "packaging. They are shipped as failures rather than suppressed because the project rule is to",
+  "flag and never silently repair — a suite tuned until it passes is not a suite. The harmonized",
+  "`ontology_id_verification` / `ontology_id_match_mode` columns exist precisely so that a query",
+  "can respect this without reading the invariant output."
+ ],
+ "enum_drift_notes": [
+  [
+   "evidence_tier:systematic-review/meta-analysis",
+   "`systematic-review/meta-analysis` and `systematic review` are the model splitting a distinction the enum collapses into `meta-analysis`. Arguably the enum is the deficient one — a systematic review without a pooled estimate is not a meta-analysis."
+  ],
+  [
+   "evidence_tier:case-report/case-series",
+   "`case-report/case-series` is the model refusing to choose between two adjacent enum values that the source genuinely straddles."
+  ],
+  [
+   "condition:other patient group",
+   "`other patient group` marks findings about a different disease used as a mechanistic analogy. The enum has no slot for that, so this is an enum deficiency, formally unadjudicated."
+  ],
+  [
+   "condition:IBD_gut",
+   "`IBD_gut` is probably a typo for `IBS_gut` — but inflammatory bowel disease and irritable bowel syndrome are different diseases, so auto-correcting it would be a guess that changes what a row claims. Left as-is, flagged, unadjudicated."
+  ],
+  [
+   "condition:orthostatic_hypotension",
+   "`orthostatic_hypotension` is a real and clinically distinct condition that the enum omits; it is adjacent to but not the same as POTS."
+  ]
+ ],
+ "readme_schema_evolution_caveat": [
+  "### A note on `certainty_derived` and other Tier-3-onward columns",
+  "",
+  "Several columns were introduced partway through the project and are **entirely empty** in the",
+  "earlier packages: `certainty_derived`, `entity_kind`, `number_in_quote`, `canonical_entity`,",
+  "`hpo_ids_verified`, `phenotype_terms`. In those packages a null means **the property was never",
+  "captured**, not that it was measured and found absent.",
+  "",
+  "The `cap_*` flags exist so a query can tell the difference without consulting documentation:",
+  "",
+  "```python",
+  "df.cap_entity_kind.iloc[0]   # False -> this tier does not carry entity_kind at all",
+  "```",
+  "",
+  "`docs/DATA_DICTIONARY.md` lists every empty column in this package.",
+  ""
+ ],
+ "annotations_intro": [
+  "The tables below were produced AFTER the tier data was frozen and ship as separate, ADDITIVE",
+  "files. No row of `data/` was modified. Join them on the stated key; every rate they carry states",
+  "its numerator, denominator and basis. They are covered by `MANIFEST.json` and `CHECKSUMS.sha256`."
+ ],
+ "annotation_descriptions": {
+  "quote_retrofit.parquet": {
+   "key": "`row_idx` = 0-based row of `data/<pkg>_findings.parquet` (+ `pmid`, `quote_sha1` as checks)",
+   "desc": "Per-row quote traceability against source text re-fetched from Europe PMC on 2026-09-16, with source depth, fetch status and the wrong-paper control. Null `retrofit_traceable` means no source exists today."
+  },
+  "condition_annotations.parquet": {
+   "key": "`pmid`",
+   "desc": "Per-paper verdict on the `condition == 'MCAS'` bucket under population-studied semantics (`in_bucket` / `bucket_violation` / `NEEDS_HUMAN`), classifier-derived, none human-confirmed."
+  },
+  "retrofit_fetch_log.parquet": {
+   "key": "`pmid`",
+   "desc": "One row per Tier 1–3 paper attempted in the retrofit: abstract/full-text availability, PMCID, HTTP outcome, fetch date."
+  },
+  "retrofit_summary.json": {
+   "key": "—",
+   "desc": "Machine-readable retrofit numbers for all four Tier 1–3 packages, every rate with numerator, denominator and basis."
+  },
+  "RETROFIT_REPORT.md": {
+   "key": "—",
+   "desc": "The retrofit report: deviations, per-stratum rates with controls, itemised permanent losses, untraceable examples."
+  },
+  "condition_annotations.csv": {
+   "key": "`pmid`",
+   "desc": "CSV twin of condition_annotations.parquet."
+  },
+  "CONDITION_ANNOTATIONS_README.md": {
+   "key": "—",
+   "desc": "Schema and coverage of condition_annotations, and how to join it."
+  },
+  "CONDITION_BUCKET_DEFINITIONS.md": {
+   "key": "—",
+   "desc": "v1 written definitions of the `condition` buckets (MCAS decided; others provisional) and the MCAS census that prompted them."
+  },
+  "COMPARATOR_GATE.json": {
+   "key": "—",
+   "desc": "Regression gate run before the retrofit: the shipped comparator reproduces Tier 4's 99.09% and is entity-code symmetric (42/42)."
+  }
+ },
+ "column_descriptions": {
+  "entity": "Marker, gene, protein, metabolite or measure the finding is about. Free text as the model wrote it. Null on 40%+ of rows by design — symptom, phenotype and quality-of-life findings name no entity.",
+  "entity_ontology_id": "Model-emitted ontology identifier. **Tiers 1-2 only.** Never authority-verified. Do not use as a mapping; use `entity_ontology_id_resolved` with `ontology_id_verification`.",
+  "gene_marker": "Gene symbol as written in the source.",
+  "direction": "Direction of the effect (increased / decreased / unchanged / etc.).",
+  "direction_reference": "What the direction is relative to (controls, baseline, another group).",
+  "finding_text": "The extracted finding, one sentence, as the model rendered it.",
+  "pathway_or_mechanism": "Free-text mechanism. Prose, not an ontology term — only 14 of 147 Tier-2 mechanism strings were real ontology terms, which is why `pathway_id` was dropped.",
+  "pathway_id": "**Tiers 1-2 only, 0.1% filled.** Deprecated; no single GO/Reactome term denotes most mechanism prose.",
+  "quantitative_detail": "Numeric detail as stated in the source.",
+  "effect_size": "Effect size as stated. Not harmonized across studies.",
+  "causal_or_correlational": "Whether the source claims causation or correlation.",
+  "evidence_tier": "Study design. Pinned enum; drift is flagged, never coerced — see the README.",
+  "functional_impact": "Stated functional consequence.",
+  "condition": "What the finding is ABOUT. Distinct from `source_literature` (which literature it came from).",
+  "pots_subtype": "POTS subtype where the source specifies one.",
+  "population_age_group": "Age group studied.",
+  "sex_hormonal": "Sex or hormonal-status stratification.",
+  "anatomical_system": "Body system.",
+  "is_covid_associated": "Whether the finding concerns a COVID-associated population. Semantics differ subtly by tier — see comparability report.",
+  "finding_type": "Kind of finding (biomarker, mechanism, treatment response, prevalence, …).",
+  "treatment_class": "Treatment class where the finding concerns one.",
+  "symptom_correlate": "Symptom the finding correlates with.",
+  "phenotype_hpo": "**Model-emitted HPO identifier, Tiers 1-2. ~34% were fabricated.** Do not use. Use `hpo_ids_verified`.",
+  "validated_instrument": "Named validated instrument (COMPASS-31, DSQ-SF, Beighton, …).",
+  "adverse_event_note": "Adverse event mentioned alongside the finding.",
+  "certainty": "The extractor's own certainty judgment. Never overwritten.",
+  "cohort_registry": "Registry the cohort came from.",
+  "cohort_name": "Named cohort.",
+  "dataset_accession": "Dataset accession where stated. 0.7% filled — papers rarely state one.",
+  "relation_type": "Relation type for subject-object findings.",
+  "relation_subject": "Relation subject.",
+  "relation_object": "Relation object.",
+  "provenance_quote": "**The verbatim source span the finding was drawn from.** The verification handle for the whole dataset. Present on every row. See LICENSE for terms — this column is not CC BY.",
+  "provenance_section": "Which section of the paper the quote came from.",
+  "null_or_failed_result": "Set where the finding is a null or failed result — deliberately retained, since these are systematically under-published.",
+  "contradicts_finding_ref": "Reference to a finding this one contradicts.",
+  "evidence_stratum": "Evidence stratum label.",
+  "study_quality": "Stated study quality.",
+  "study_type": "Study type as stated.",
+  "n_participants": "Participant count as stated.",
+  "comparator": "Comparator group.",
+  "demographics": "Demographic detail.",
+  "is_duplicate_or_preprint_note": "Note where the source may be a duplicate or preprint of another record.",
+  "contradicts_or_extends": "Whether the finding contradicts or extends prior work.",
+  "limitations_stated": "Limitations the source itself states.",
+  "future_direction": "Future direction the source proposes.",
+  "pmid": "PubMed ID. **The paper key. Count papers with `pmid.nunique()`.**",
+  "doi": "DOI.",
+  "title": "Paper title.",
+  "year": "Publication year.",
+  "journal": "Journal.",
+  "source_stream": "Which query stream retrieved the paper.",
+  "theme": "Extraction theme. Package-specific vocabulary by construction — never compare across packages.",
+  "fulltext_status": "`retrieved-fulltext` / `abstract-only` / `blocked`. **Drives yield ~3x and determines verifiability.** Always stratify on this.",
+  "contact_note": "Contact note.",
+  "chunk_id": "Extraction chunk. Maps to the tier via `chunk_order.parquet`.",
+  "hgnc_id": "HGNC gene identifier.",
+  "ensembl_id": "Ensembl gene identifier.",
+  "gene_resolved": "Whether the gene symbol resolved against an authority.",
+  "entity_ontology_id_resolved": "Resolved ontology identifier. **Meaning differs by tier: authority-derived in Tiers 3-4, model-emitted in Tiers 1-2.** Always read alongside `ontology_id_verification`.",
+  "entity_ontology_label": "The authority's own label for the identifier. Comparing this to `entity` is how identifier correctness was measured offline.",
+  "pathway_id_resolved": "Resolved pathway identifier.",
+  "pathway_label": "Pathway label.",
+  "phenotype_hpo_resolved": "Resolved HPO identifier.",
+  "phenotype_hpo_label": "HPO label.",
+  "source_fidelity": "Retained for forward compatibility. **Single value on many packages — zero information. Not a quality filter that passed.**",
+  "source_route": "How the source text was obtained.",
+  "pmcid": "PubMed Central ID.",
+  "entity_ontology_id_note": "Note field. Effectively empty.",
+  "anatomical_study": "Note field. Effectively empty.",
+  "tier_source": "Which extraction pass produced the row (`t1`/`t2`/`t3`/`t4`). Constant within a package.",
+  "cap_entity_kind": "**Capability flag** (computed): does this row's tier support `entity_kind`? Null means NOT PRESENT, not unknown.",
+  "cap_hpo_verified": "**Capability flag**: does this tier carry authority-verified HPO identifiers?",
+  "cap_number_in_quote": "**Capability flag**: does this tier carry the `number_in_quote` check?",
+  "cap_quote_source_retained": "**Capability flag**: is the quote's own source text still retained? True only in Tier 4.",
+  "ontology_id_verification": "**Added by harmonization. Consistent semantics across all five packages — filter on THIS.** `authority_verified` (Tiers 3-4) / `unverified_model_emitted` (Tiers 1-2) / `no_id`.",
+  "ontology_id_match_mode": "**Added by harmonization.** How the identifier was matched (exact label, synonym, …).",
+  "hpo_verification": "**Added by harmonization.** HPO verification status, consistent across packages.",
+  "hpo_id_count_unified": "Number of verified HPO identifiers on the row, unified across packages.",
+  "ontology_id_prefix": "Ontology namespace of the identifier (HGNC, CHEBI, HP, …).",
+  "ontology_id_repaired": "Whether the syntactic repair pass touched this identifier. **Syntactic only — case and namespace. Re-derived nothing from names.**",
+  "ontology_repair_action": "What the repair pass did.",
+  "ontology_id_final": "Identifier after the repair pass.",
+  "ontology_id_source": "**TRAP: inverted semantics across tiers.** `unresolved_nulled` means identifier KEPT in Tier 2 and identifier NULLED in Tiers 3-4. Provenance only — never a filter. See COMPARABILITY.md.",
+  "entity_clean": "Cleaned entity string.",
+  "ontology_label_final": "Final ontology label.",
+  "entity_kind": "Entity type (gene, protein, chemical/metabolite, …). **Tiers 3-4 only** — null means NOT PRESENT in Tiers 1-2.",
+  "phenotype_terms": "Atomic clinical terms split out of the raw symptom string.",
+  "certainty_derived": "Hedge-detection over both `finding_text` and `provenance_quote`: both hedged -> hedged, neither -> confirmed, disagreement -> mixed. Never overwrites `certainty`.",
+  "number_in_quote": "Is the value in `quantitative_detail`/`effect_size` actually present in the quote? ~9.9% of Tier-2 rows fail. **A genuine open question, not a bug to auto-fix.**",
+  "fetch_note": "HTTP status or exception from the fetch, so `blocked` is diagnosable rather than terminal.",
+  "gene_id_source": "Provenance of the gene identifier.",
+  "hpo_ids_verified": "**Authority-verified HPO identifiers, semicolon-delimited.** Multi-value because 43.2% of mappable symptom strings resolve to more than one HPO term.",
+  "hpo_labels_verified": "Labels for the verified HPO identifiers.",
+  "hpo_id_source": "Provenance of the HPO identifiers.",
+  "hpo_id_count": "Count of semicolon-delimited HPO identifiers. Invariant-checked against the string.",
+  "tier": "Numeric tier. **Partially null — use `tier_source` instead.**",
+  "_source_version_id": "Build provenance: which per-tier artifact the row came from.",
+  "canonical_entity": "Canonical entity name. **Tiers 3-4 only in-row.** Join `entity_vocabulary_crosstier.parquet` to canonicalize Tiers 1-2.",
+  "canonical_source": "Which canonicalization rule fired.",
+  "source_literature": "Which condition literature the paper was drawn FROM. Distinct from `condition` (what the finding is about).",
+  "about_condition": "Condition the finding is about, harmonized.",
+  "evidence_scope": "Scope of the evidence.",
+  "query_contamination": "**TRAP: means different things by tier.** Tier 3: abbreviation-collision rows (40, wrong 'ASD'). Tier 4: screening-uncertain rows (1,960). Two different concepts under one name.",
+  "query_contamination_note": "Why the row was flagged.",
+  "screen_verdict_uncertain": "Tier 4: the screen was uncertain whether the paper is in scope.",
+  "screen_verdict_note": "Screening note."
+ },
+ "methods_params": {
+  "tier1": {
+   "model": "claude-sonnet-5",
+   "prompt": "schema_v5",
+   "pipeline": "extraction_pipeline.py",
+   "notes": [
+    "Identifiers were requested FROM THE MODEL. This is the defect that Tiers 3-4 fixed.",
+    "Full text discarded after extraction.",
+    "Accept-header bug present: some papers silently downgraded to abstract-only."
+   ]
+  },
+  "tier2a": {
+   "model": "claude-sonnet-5",
+   "prompt": "schema_v5",
+   "pipeline": "extraction_pipeline.py",
+   "notes": [
+    "Identifiers requested from the model; 27.7% of ontology ids and ~34% of HPO ids were fabricated, then repaired syntactically.",
+    "Full text discarded after extraction.",
+    "Accept-header bug cost 57 papers, later recovered by re-extraction (314 -> 693 findings)."
+   ]
+  },
+  "tier2b": {
+   "model": "claude-sonnet-5",
+   "prompt": "schema_v5",
+   "pipeline": "extraction_pipeline.py",
+   "notes": [
+    "Same pipeline and prompt as Part A. 64 chunks, 46,579s wall, 64/64 completed, zero permanent failures.",
+    "Full text discarded after extraction."
+   ]
+  },
+  "tier3": {
+   "model": "claude-sonnet-5",
+   "prompt": "schema_v6",
+   "pipeline": "extraction_pipeline_v6.py",
+   "notes": [
+    "**The model emits NAMES ONLY.** Every identifier is derived afterwards by authority lookup. A parser guard rejects any id-shaped string the model returns anyway.",
+    "Accept header fixed to `*/*`, with a non-empty >2000-char assertion before treating a paper as abstract-only.",
+    "`blocked` made retryable, with the HTTP status recorded in `fetch_note`.",
+    "Full text discarded after extraction — the one fix not made."
+   ]
+  },
+  "tier4": {
+   "model": "claude-sonnet-5",
+   "prompt": "tier4_prompt.txt",
+   "pipeline": "tier4_pipeline.py",
+   "notes": [
+    "**Body text RETAINED** in gzipped chunk archives. This is why Tier 4 is the only package with 100% quote verifiability.",
+    "Papers pre-screened by a rule+LLM instrument before extraction, because Tier 4's themes sit at the corpus boundary.",
+    "Screening instrument was itself repaired mid-run: a closed in-scope condition list read as exhaustive and the model excluded familial dysautonomia from a dysautonomia corpus (303 off-topic vs the rule arm's 20). The 303-vs-20 disagreement was the tell that the instrument was broken, not the papers.",
+    "All 9 invariants pass."
+   ]
+  }
+ },
+ "methods_validation_checks": [
+  "1. **Schema completeness** — required columns present.",
+  "2. **Conservation** — no chunk silently absent, no chunk exceeding its paper allotment.",
+  "3. **Monotonicity** — a pass that adds must never shrink counts.",
+  "4. **No model-emitted identifiers** — no id-shaped string in any name field.",
+  "5. **Identifier provenance** — every non-null identifier carries a source tag.",
+  "6. **Enum drift** — flagged, never coerced.",
+  "7. **Duplicates** — on the FULL row. A loose key flags legitimate distinct findings drawn from",
+  "   one summary sentence, which was a false defect reading in Tier 2.",
+  "8. **HPO multi-value consistency** — `hpo_id_count` equals the delimiter count.",
+  "9. **Authority/prefix agreement** — an identifier's prefix must match the authority its",
+  "   provenance names. Added after an audit found 49 rows claiming `authority_lookup_ols_hp`",
+  "   while holding GO/PATO/MPATH ids: the ids were right, the provenance CLAIM was wrong, and",
+  "   the eight-check suite could not see it because it only verified that a source tag exists,",
+  "   never that it agrees with the identifier it labels."
+ ],
+ "coverage_vs_correctness_table": [
+  "| Tier 1 | 12.1% | 0.578 |",
+  "| Tier 2 | 17.5% | 0.708 |",
+  "| Tier 3 | 15.8% | **0.986** |",
+  "| Tier 4 | 10.3% | **0.998** |"
+ ],
+ "limitations_enum_drift_tail": [
+  "verbatim, never coerced.** Two of the drifted values are arguments that the enum is",
+  "deficient rather than the output wrong — `other patient group` (findings about another",
+  "disease used as a mechanistic analogy, which the enum has no slot for) and `IBD_gut`",
+  "(probably an `IBS_gut` typo, but IBD and IBS are different diseases so correcting it would",
+  "change what the row claims). Both are formally unadjudicated."
+ ],
+ "limitations_cross_package_traps": [
+  "Three columns will mislead you if you pool packages naively. Full detail in",
+  "`docs/COMPARABILITY.md`; the short form:",
+  "",
+  "- **`id_resolved_frac` ranks the packages backwards.** It measures coverage, not correctness.",
+  "- **`ontology_id_source == 'unresolved_nulled'`** means identifier KEPT in Tier 2 and",
+  "  identifier NULLED in Tiers 3-4. The obvious filter drops 2,242 Tier-2 rows that do carry",
+  "  identifiers.",
+  "- **`query_contamination`** means abbreviation collision in Tier 3 (40 rows) and screening",
+  "  uncertainty in Tier 4 (1,960 rows). Two concepts, one name.",
+  "",
+  "Eleven metrics are not comparable across all five packages. Five aggregates are safe."
+ ],
+ "limitations_corpus_construction": [
+  "The corpus was assembled by keyword query, so it inherits every bias of the queries: it is",
+  "**English-language, PubMed/Europe-PMC-indexed, and weighted toward the conditions that were",
+  "searched for**. Conditions appear in packages other than their own only as incidental",
+  "mentions — a count of `condition == 'fibromyalgia'` in the Tier 1 package means",
+  "*POTS/dysautonomia papers that mention fibromyalgia*, not the fibromyalgia literature.",
+  "",
+  "Publication bias is inherited wholesale and unmeasured. Null results are retained where the",
+  "source reported them (`null_or_failed_result`), which partially offsets this — but only",
+  "partially, since unpublished nulls are absent by construction."
+ ],
+ "repo_readme_topics": {
+  "tier1": "POTS, dysautonomia core",
+  "tier2a": "comorbid conditions, wave 1",
+  "tier2b": "comorbid conditions, wave 2",
+  "tier3": "long COVID, post-viral, autism",
+  "tier4": "migraine, hypermobility, Sjögren's, PANS/PANDAS"
+ },
+ "site_guide_body": {
+  "tier1": [
+   "**This package is already deployed** — it is the site's tier-1 layer, rows 0–36,458.",
+   "",
+   "**But the row counts differ: this package has 36,067 rows, the site's tier-1 layer has",
+   "{t1_rows}.** A {t1_delta}-row delta. The site was built from the pre-harmonization",
+   "tier-1 export (89 columns); this package is the harmonized slice (107 columns). Do **not**",
+   "assume row *i* here is row *i* on the site. If you rebuild the site from this package, you",
+   "rebuild the whole row-order contract and every embedding shard with it.",
+   "",
+   "**Nothing new to load.** What this package offers the site is *corrections*, not content:",
+   "",
+   "| what | site today | this package |",
+   "|---|---|---|",
+   "| columns | 89 | 107 |",
+   "| identifier honesty | id present or absent | `ontology_id_verification` distinguishes model-emitted from authority-verified |",
+   "| quote verifiability | not surfaced | `cap_quote_source_retained` per row |",
+   "| paper count basis | `canonical_pmid` (3,121) | `pmid` (3,129) |",
+   "",
+   "### The one change worth making for tier 1",
+   "",
+   "The site presents tier-1 ontology identifiers with no signal that **~42% of them do not",
+   "denote their entity**. That is the most misleading thing on the site today. A reader",
+   "clicking an entity gets an identifier that looks authoritative.",
+   "",
+   "Minimum fix, Layer 3 only, no rebuild: badge tier-1 identifiers as unverified wherever they",
+   "render. `ui.js` already exports `framingBanner()` and `entityCoverageNote()`; add a third",
+   "export in the same style."
+  ],
+  "tier2a": [
+   "**This package is already deployed** — it is the site's tier-2 layer, rows",
+   "{t1_rows}–73,069. The arithmetic is exact: {cur_findings} − {t1_rows} =",
+   "**{t2a_rows}**, which is this package's row count to the row.",
+   "",
+   "**This resolves an ambiguity in the site's own copy.** The deployed scope caveat reads",
+   "*\"Tier-2 covers 81 of 146 chunks (~55%)\"*. That is precisely this package: Part A, 81",
+   "chunks. The missing ~45% is **Tier 2 Part B**, which exists, is complete, and is simply not",
+   "loaded.",
+   "",
+   "**Nothing new to load from this package.** Its value to the site is that the caveat can now",
+   "name what is missing instead of gesturing at a percentage.",
+   "",
+   "### Recommended copy change (Layer 3, no rebuild)",
+   "",
+   "Replace the `~55%` framing in `framingBanner()` with something a reader can act on:",
+   "",
+   "> Tier 2 was extracted in two waves. This site currently shows the first wave — 81 of 145",
+   "> chunks, {t2a_rows} findings from 3,123 papers. The second wave (64 chunks, 33,830 findings,",
+   "> 2,589 papers) is complete and published separately, but is not loaded here. The two waves",
+   "> share no papers and cover the same nine themes."
+  ],
+  "tier2b": [
+   "**This package is NOT on the site. It is the single largest content addition available.**",
+   "",
+   "The site's *\"Tier-2 covers 81 of 146 chunks (~55%)\"* caveat exists because of this",
+   "package. Loading it retires that caveat.",
+   "",
+   "| | current site | after adding this package |",
+   "|---|---:|---:|",
+   "| findings | {cur_findings} | **{after_findings}** |",
+   "| papers | {cur_papers} | **{after_papers}** |",
+   "| tier-2 coverage | 81 of 145 chunks | **145 of 145** |",
+   "| shards @ {shard_rows} rows | {cur_shards} | **{after_shards}** |",
+   "",
+   "Because the two waves share **zero papers**, this is a pure append — no dedup pass, no",
+   "paper-record merge.",
+   "",
+   "### Load procedure",
+   "",
+   "The row-order contract is **append-only**, so Part B goes after row 73,069 and every",
+   "existing row index stays valid:",
+   "",
+   "```",
+   "rows      0 – 36,458   tier 1        (unchanged)",
+   "rows {t1_rows} – 73,069   tier 2 part A (unchanged)",
+   "rows {cur_findings} – 106,899  tier 2 part B (new)",
+   "```",
+   "",
+   "1. Append this package's rows to the Layer 1 record in that order.",
+   "2. Regenerate Layer 2 wholesale — `site/data/*.json`, all shards, `emb/*.bin`. Bump",
+   "   `meta.json` version from `{cur_version}` to `combined-t1t2ab-1`.",
+   "3. Re-embed. Existing embedding shards stay byte-valid (append-only), so only the new",
+   "   shards need computing.",
+   "4. Run `site_tools/` verification before publishing.",
+   "5. Update `framingBanner()` — the ~55% caveat is now false and must not survive the load.",
+   "",
+   "**Watch the facet keys.** `ti` (tier) and `sl` (source_literature) exist but are documented",
+   "as not load-bearing. Both waves are `ti = t2`, so a tier facet will not distinguish them.",
+   "If you want the waves separable in the UI, that is a **new facet**, not a reuse of `ti`."
+  ],
+  "tier3": [
+   "**This package is NOT on the site.** It is the first content from the post-tier-2",
+   "pipeline, and it changes what the site can honestly claim about identifiers.",
+   "",
+   "| | current site | after adding this package |",
+   "|---|---:|---:|",
+   "| findings | {cur_findings} | **{after_findings}** |",
+   "| papers | {cur_papers} | **{after_papers}** |",
+   "| shards @ {shard_rows} rows | {cur_shards} | **{after_shards}** |",
+   "",
+   "### What is genuinely new for the site",
+   "",
+   "1. **Authority-verified identifiers — 4,113 rows.** Everything on the site today is",
+   "   model-emitted. These are resolver-derived and score 0.986 on denotation. This is the",
+   "   first time the site could show a *verified* badge that means something.",
+   "2. **`canonical_entity` populated in-row — 17,828 rows.** The site's 2,803 canonical",
+   "   entities were computed at build time from a vocabulary join. Tier 3 carries",
+   "   canonicalization in the data itself.",
+   "3. **`entity_kind`** — gene / protein / chemical / anatomical. A facet the site cannot",
+   "   currently offer at all. Absent (null, not false) for tiers 1–2.",
+   "4. **`certainty_derived`** — hedge detection over finding text *and* quote. Enables a",
+   "   confidence filter that does not exist today.",
+   "5. **Long COVID becomes the site's largest condition** — this package is long-COVID",
+   "   dominated, and pooling shifts the corpus's centre of gravity.",
+   "",
+   "### Two traps specific to loading tier 3",
+   "",
+   "**Trap A — `entity_kind` and `certainty_derived` are null for every row already on the",
+   "site.** A facet built on either will silently show only tier-3 rows. Gate on the `cap_*`",
+   "flags, and label the facet as tier-3-onward, or a reader will read *\"12 genes\"* as a",
+   "corpus-wide count when it is a tier-3 count.",
+   "",
+   "**Trap B — mixing verified and unverified identifiers in one entity view.** Once tier 3 is",
+   "loaded the site holds both kinds. An entity page pooling them presents 0.986-grade and",
+   "0.578-grade identifiers identically. **Split them in the UI, or badge every one.**",
+   "",
+   "**Also filter `query_contamination`** — 40 rows from 6 papers pulled in by the ambiguous",
+   "abbreviation *ASD* (adult spinal deformity / atrial septal defect, not autism). They should",
+   "not surface in an autism view. `scope/tier3_offtopic_pmids.csv` lists the 28 PMIDs."
+  ],
+  "tier4": [
+   "**This package is NOT on the site.** It is small, but it is the only package whose quotes",
+   "are all verifiable — which is a *feature the site cannot currently offer for any row*.",
+   "",
+   "| | current site | after adding this package |",
+   "|---|---:|---:|",
+   "| findings | {cur_findings} | **{after_findings}** |",
+   "| papers | {cur_papers} | **{after_papers}** |",
+   "| shards @ {shard_rows} rows | {cur_shards} | **{after_shards}** |",
+   "",
+   "### What is genuinely new for the site",
+   "",
+   "1. **100% quote verifiability — 15,646 rows.** Body text was retained, so every quote can",
+   "   be re-checked against its own source. Every other row on the site has a quote whose",
+   "   source is gone. This supports a *\"verified against source\"* badge that is true.",
+   "2. **The highest identifier correctness in the corpus** — 0.998, though at the lowest",
+   "   coverage (10.3%).",
+   "3. **Four themes absent from the site**: migraine intersection, hypermobility spectrum,",
+   "   Sjögren's, PANS/PANDAS.",
+   "4. **`screen_verdict_uncertain`** — 1,960 rows the screening instrument was unsure about.",
+   "   Surfacing this honestly is better than hiding it.",
+   "",
+   "### Traps specific to loading tier 4",
+   "",
+   "**`query_contamination` means something different here.** In tier 3 it marks abbreviation",
+   "collisions (40 rows); in tier 4 it marks screening uncertainty (1,960 rows). **A single",
+   "site-wide filter on this column would conflate two unrelated concepts.** Read",
+   "`screen_verdict_uncertain` for tier 4 instead.",
+   "",
+   "**Coverage has two true values** — 85.97% of screened papers, 74.57% of the pre-screening",
+   "universe. If the site states a tier-4 coverage figure it must say which."
+  ]
+ },
+ "site_guide_footer": [
+  "## Rebuild checklist (applies to any load)",
+  "",
+  "- [ ] Append to Layer 1 in row order; never edit existing rows.",
+  "- [ ] Regenerate **all** of Layer 2 — partial regeneration desynchronizes shards from facets.",
+  "- [ ] Bump `meta.json` version; the loader keys cache on it.",
+  "- [ ] Re-run `site_tools/` verification.",
+  "- [ ] Re-check every hardcoded number in Layer 3 copy. Counts in prose go stale silently.",
+  "- [ ] Confirm `loadTextShard` / `loadDetailShard` / `shardOf(row)` still agree with the new",
+  "      shard count.",
+  "",
+  "## What must not be presented as a bare number",
+  "",
+  "Three site-wide honesty rules, unchanged by which package you load:",
+  "",
+  "1. **Never show an identifier without its verification status** once packages of both kinds",
+  "   are loaded. 0.578 and 0.998 must not render identically.",
+  "2. **Never present an entity-keyed count as a total.** Roughly half of all findings name no",
+  "   entity by design.",
+  "3. **Never imply a quote is verified unless `cap_quote_source_retained` is true.** True for",
+  "   tier 4 only."
+ ],
+ "tier4_screen_uncertain_prose_count": "2,257",
+ "_note_tier4_screen_uncertain": "v1 docs state 1,960 screen_verdict_uncertain rows in four places; the shipped Tier 4 data has 2,257 rows with screen_verdict_uncertain == True (qa/package_stats.json flags.screen_verdict_uncertain). Kept as a prose constant to reproduce v1; flagged, not repaired.",
+ "code_roles": {
+  "verify_package.py": "Re-derives every number in README/DATA_DICTIONARY from the shipped data; `--self-test` plants six regressions and asserts each is caught. Exits non-zero on disagreement.",
+  "quote_trace.py": "Quote traceability matcher (`normalize`, `quote_traceability`) with its MANDATORY wrong-paper negative control. Read element [1] of the tuple.",
+  "normalizer_tests.py": "Unit tests for the source-text normalizer — one case per bug that once produced a false quality number.",
+  "comparator_symmetry_tests.py": "Pins that the matcher decodes HTML entities and folds whitespace/superscripts on BOTH sides (8 cases). Run before any retrofit census.",
+  "multi_authority_resolver.py": "Name → identifier resolution against real authorities (HGNC, OLS4/HPO/MONDO, MeSH, QuickGO); records authority and match mode. Exact-label only.",
+  "resolution_cache.py": "Persistent cache for resolver look-ups so re-runs make zero API calls.",
+  "crosstier_vocab.py": "Cross-tier entity canonicalization; refuses to case-fold gene symbols (MECP2 vs Mecp2).",
+  "tier2_invariants.py": "Invariant suite as written for Tier 2 (count conservation, enum drift, id shape).",
+  "tier3_invariants.py": "Nine-check invariant suite written for Tier 3; the suite run on every package's QA.",
+  "tier3_invariants_ext.py": "Extensions to the Tier-3 suite: id provenance tags, quote/number checks.",
+  "tier4_invariants_ext_v2.py": "Tier-4 extension: screening-verdict and retention invariants.",
+  "tier2_enum_validator.py": "Enum-drift detector for the schema-v5 fields (flags, never coerces).",
+  "extraction_pipeline.py": "Schema-v5 extraction pipeline (Tiers 1–2): Europe PMC fetch, prompt build, JSON guard. Model emitted identifiers in this generation.",
+  "extraction_pipeline_v6.py": "Schema-v6 pipeline (Tier 3): names only, identifiers resolved afterwards.",
+  "tier4_pipeline.py": "Tier-4 pipeline: names only, source-text retention, pinned pacing (0.9 s × 3 workers).",
+  "schema_v5_extraction_prompt.txt": "The exact prompt used for Tiers 1–2.",
+  "schema_v6_extraction_prompt.txt": "The exact prompt used for Tier 3.",
+  "tier4_prompt.txt": "The exact prompt used for Tier 4.",
+  "tier4_scope_definition.txt": "Screening scope text (open-ended in-scope families and off-topic senses).",
+  "driver.py": "Chunk driver for Tier 1.",
+  "driver_tier2_scoped.py": "Scoped chunk driver for Tier 2.",
+  "driver_tier3_parts.py": "Part-aware chunk driver for Tier 3.",
+  "tier4_driver.py": "Tier-4 driver: ceiling detection, part-aware done_units, yield/blocked gates.",
+  "tier4_driver_tests.py": "Unit and adversarial tests for the Tier-4 driver.",
+  "tier4_resolver.py": "Tier-4 authority resolver wrapper (exact-label only, provenance-tagged).",
+  "tier4_quote_census.py": "Two-stratum quote census (abstract and archive-backed full text), each with its own control.",
+  "tier3_merge.py": "Part merge with conflicting-scheme guard (Tier 3).",
+  "tier3_qa.py": "Tier-3 QA: quote census, field fill, enum drift.",
+  "retrofit_fetch.py": "2026-09-16 retrofit fetcher: re-fetches abstract + JATS body from Europe PMC at the pinned pacing (3 × 0.9 s); logs per paper.",
+  "retrofit_census.py": "2026-09-16 retrofit census: re-checks every quote against re-fetched source with the pinned comparator and wrong-paper control; emits annotations/quote_retrofit_<pkg>.parquet.",
+  "build_report.py": "Builds RETROFIT_REPORT.md and retrofit_summary.json from the census outputs."
+ }
+}

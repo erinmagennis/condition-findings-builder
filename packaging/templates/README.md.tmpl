@@ -1,0 +1,275 @@
+# POTS / Dysautonomia Cross-Condition Literature Findings
+
+**@@TOTAL_FINDINGS@@ machine-extracted structured findings from @@TOTAL_PAPERS@@ papers** across the POTS,
+dysautonomia and comorbid-condition literature — including ME/CFS, Ehlers-Danlos and
+hypermobility, MCAS, fibromyalgia, IBS, small-fiber neuropathy, long COVID, autism, migraine,
+Sjögren's and PANS/PANDAS.
+
+Each finding carries the verbatim source span it was drawn from, its source paper's PMID and
+DOI, and explicit provenance for every ontology identifier — so a reader can check it.
+
+> **Read this first: scientific fidelity is unmeasured.**
+> Every quality check in this repository verifies *well-formedness* — that a quote is real text
+> from the right paper, that identifiers carry authority provenance, that counts are conserved.
+> **Nothing verifies that a finding correctly interprets its source.** That requires a human
+> reader. Treat every row as a pointer to a paper worth reading, not as a fact to cite.
+>
+> **Not medical advice.** No diagnostic or treatment guidance. Machine-extracted research
+> information only.
+
+## The five packages
+
+Five blocks of one corpus. **Zero papers are shared between any two** — verified by PMID set
+intersection across all ten pairs. Each folder stands alone: data, docs, QA evidence, pinned
+code, and a verifier that re-derives every documented number from the shipped data.
+
+| package | findings | papers | topic | identifiers | quotes verifiable |
+|---|---:|---:|---|---|---:|
+@@PACKAGE_TABLE_ROWS@@
+| **total** | **@@TOTAL_FINDINGS@@** | **@@TOTAL_PAPERS@@** | | | **@@CORPUS_VERIFIABLE_PCT@@%** |
+
+Start with any folder's `README.md`. [`OVERVIEW.md`](OVERVIEW.md) compares all five;
+[`COMPARABILITY.md`](COMPARABILITY.md) is the one document to read before pooling any of them.
+
+## Downloading one tier at a time
+
+Every folder is self-contained — its own data, docs, QA evidence and code. You never need more
+than one.
+
+**Easiest: download a single package archive.** From the
+[Releases](../../releases) page, take just the tier you want:
+
+```bash
+tar -xzf pots-corpus-tier4-@@VERSION@@.tar.gz
+cd pots-corpus-tier4-@@VERSION@@
+shasum -a 256 -c CHECKSUMS.sha256          # confirm the download is intact
+python code/verify_package.py --self-test  # confirm the data matches the docs
+```
+
+That's @@TIER4_ARCHIVE_MB@@ MB compressed for Tier 4, and nothing from the other four tiers is involved. No Git
+needed.
+
+**From Git, one folder only.** A plain `git clone` fetches all five (~@@REPO_MB_ROUNDED@@ MB working tree). To
+get a single tier, use a sparse checkout:
+
+```bash
+git clone --filter=blob:none --no-checkout https://github.com/<you>/pots-corpus.git
+cd pots-corpus
+git sparse-checkout init --cone
+git sparse-checkout set tier4
+git checkout
+```
+
+You end up with `tier4/` plus the top-level docs, and none of the other tier folders. Add
+another later with `git sparse-checkout add tier3`.
+
+**Single file, no clone at all.** Every file has a direct URL, which is useful for a script
+that only wants the table. Fetch the bytes, then read them:
+
+```python
+import io, urllib.request
+import pandas as pd
+
+url = ("https://raw.githubusercontent.com/<owner>/pots-corpus/main/"
+       "tier4/data/tier4_findings.parquet")
+df = pd.read_parquet(io.BytesIO(urllib.request.urlopen(url).read()))
+```
+
+Passing the URL straight to `pd.read_parquet(url)` also works, but only if `fsspec` and
+`requests` are installed — they are not part of a default pandas install, so the two-step
+version above is the portable one.
+
+Replace `<owner>` with the account hosting the repository. Files over 100 MB will not serve
+from `raw.githubusercontent.com`; nothing here approaches that (largest file: @@LARGEST_FILE_MB@@ MB).
+
+**Package sizes**, compressed / on disk:
+
+| package | archive | extracted | findings |
+|---|---:|---:|---:|
+@@SIZE_TABLE_ROWS@@
+
+Each folder repeats the shared files — the 39,128-row entity vocabulary, the chunk map, the
+invariant modules — which is why the five sum to slightly more than the corpus. That redundancy
+is deliberate: it is what lets any one folder work alone.
+
+The whole repository is **@@REPO_N_FILES@@ files / @@REPO_MB@@ MB** (@@PER_TIER_FILE_COUNTS@@ across the five tier
+folders, plus @@ROOT_N_FILES@@ at the root). The largest single file is the @@LARGEST_FILE_MB@@ MB Tier 1 CSV, so **no Git LFS
+is required** — GitHub warns at 50 MB and blocks at 100 MB per file.
+
+**If you want all five**, pool them freely for row counts, paper metadata and quote presence —
+but read [`COMPARABILITY.md`](COMPARABILITY.md) first. Eleven metrics are not comparable across
+packages, and three columns will actively mislead you.
+
+## Four things that will mislead you
+
+These are the errors most likely to be made by someone using this data, in the order they are
+likely to be made.
+
+### 1. The metric that looks like grounding quality ranks the packages backwards
+
+`id_resolved_frac` — the share of rows carrying an ontology identifier — measures **coverage**,
+not **correctness**:
+
+| package | identifier coverage | identifier correctness |
+|---|---:|---:|
+| Tier 1 | 12.1% | 0.578 |
+| Tier 2 (A+B) | 17.5% | 0.708 |
+| Tier 3 | 15.8% | **0.986** |
+| Tier 4 | 10.3% | **0.998** |
+
+Tier 2 has the most identifiers and nearly the worst; Tier 4 the fewest and the best. The
+reason is architectural: in Tiers 1–2 the extraction model *emitted* identifiers from memory
+(there is no reasoning path from a name to an arbitrary integer — only recall). In Tiers 3–4 the
+model emitted names only and a resolver looked identifiers up afterwards.
+
+**Always stratify on `ontology_id_verification`. Never pool `id_resolved_frac`.**
+
+### 2. Roughly three quarters of quotes cannot be re-checked
+
+Only Tier 4 retained body text after extraction. Elsewhere, a finding drawn from a paper's
+Results section has a quote with no surviving source. **@@CORPUS_UNVERIFIABLE_ROWS@@ of @@TOTAL_FINDINGS@@ rows are
+unverifiable.**
+
+This is a *retention* failure, not an extraction failure — where source text survives,
+traceability is 94–99% with **0% wrong-paper false positives in every stratum**. The evidence
+was simply discarded. It is recoverable: a 97-paper pilot re-fetched 97/97 from Europe PMC.
+
+### 3. One column has opposite meanings in different packages
+
+`ontology_id_source == 'unresolved_nulled'` means the identifier was **KEPT** in Tier 2 and
+**NULLED** in Tiers 3–4. So the obvious filter silently drops 2,242 Tier-2 rows that do carry
+identifiers:
+
+```python
+df[df.ontology_id_source != 'unresolved_nulled']   # WRONG - drops valid rows
+df[df.ontology_id_verification == 'authority_verified']   # right
+```
+
+### 4. `condition` is a population bucket — and the `MCAS` bucket is mostly not MCAS
+
+`condition` means **the patient population the paper studied**, in coarse buckets whose written
+definitions (`<pkg>/annotations/CONDITION_BUCKET_DEFINITIONS.md`) were fixed only on 2026-09-16, after
+extraction. A stratified census of the 1,083 papers labelled `MCAS` projects that **~69% study mast-cell
+biology with no mast-cell-disorder population, ~10% are MCAS as defined, ~5% are mastocytosis** — a distinct
+clonal neoplasm. A "markers of MCAS" count taken from the raw bucket is mostly a count of mast-cell markers
+in general. The shipped column is unchanged; `annotations/condition_annotations.parquet` (pmid-keyed, in
+every package) carries a per-paper verdict — `in_bucket` / `bucket_violation` / `NEEDS_HUMAN` — all
+classifier-derived and `human_confirmed == False`. Only the MCAS bucket has been censused.
+
+```python
+ann = pd.read_parquet('tier2a/annotations/condition_annotations.parquet')
+ok = ann.loc[ann.condition_bucket_verdict == 'in_bucket', 'pmid']
+df[df.condition.eq('MCAS') & df.pmid.isin(ok)]   # MCAS population, classifier-verified
+```
+
+## What changed in v1.1 — additive annotations, no data changed
+
+No row of any `data/` table was modified between v1 and v1.1. Three things were added, all as separate
+files under each package's `annotations/`, covered by its `MANIFEST.json` and `CHECKSUMS.sha256`:
+
+- **Quote source retrofit for Tiers 1–3.** Source text for all 10,428 Tier 1–3 papers was re-fetched
+  from Europe PMC (abstract 96.8%, full text 98.4% of the 6,239 full-text papers) and every quote
+  re-checked with the shipped comparator. Verifiable rows in Tiers 1–3 went from 23,991 to **132,295 of
+  132,540 (18.1% → 99.8%)**; full-text rows trace to re-fetched full text at **97.9%** with 0/400
+  wrong-paper false positives in every stratum. Row-level results: `quote_retrofit_<pkg>.parquet`. The
+  fetched text is not shipped (see LICENSE). This checks *current* Europe PMC text, not the bytes the
+  model read — Tier 4's retained-archive guarantee is not reproduced.
+- **Condition bucket annotations** (item 4 above) and the bucket definitions file.
+- **Documentation corrections**: `condition` and `provenance_quote` re-described in every data dictionary
+  (128 quotes carry raw HTML entity codes, verbatim to model input); `code/README.md` in every package
+  explains why a Tier-1 package carries `tier3_*` modules; three boolean columns are now stored as nullable
+  `boolean` in the parquet (values unchanged); the Tier-4 "1,960 uncertain rows" figure is corrected to the
+  data's 2,257; `PACKAGE_INDEX.csv` file counts now match each `MANIFEST.json`.
+
+## Quickstart
+
+```python
+import pandas as pd
+df = pd.read_parquet('tier3/data/tier3_findings.parquet')   # @@T3_FINDINGS@@ findings
+
+# identifiers you can trust
+grounded = df[df.ontology_id_verification == 'authority_verified']
+
+# findings whose quote can be checked against surviving source text
+checkable = df[df.cap_quote_source_retained == True]
+
+# highest-confidence evidence
+strong = df[df.evidence_tier.isin(['meta-analysis','RCT'])
+            & df.certainty_derived.eq('confirmed')]
+```
+
+Each package also ships the same table as `data/<pkg>_findings.csv.gz` for tools without
+parquet support, and a 39,128-row entity canonicalization lookup as
+`data/entity_vocabulary_crosstier.parquet`.
+
+**Never lowercase entity names to merge them** — `MECP2` and `Mecp2` are the human and mouse
+genes. The shipped vocabulary keeps every ortholog pair apart (0 false merges against 25
+planted controls).
+
+## Verify any package
+
+Every documented number is re-derivable from the shipped data. Nothing requires the network.
+
+```bash
+cd tier3
+shasum -a 256 -c CHECKSUMS.sha256          # confirm nothing was corrupted
+python code/verify_package.py --self-test  # re-derive every number in the README
+```
+
+The verifier exits non-zero if the data disagrees with the documentation. `--self-test` plants
+six regressions and asserts each is caught — a checker that only ever passes is untested.
+
+All five packages currently report **19/19 headline numbers re-derived** and **6/6 planted
+regressions caught**.
+
+## Known invariant failures — declared, not hidden
+
+A nine-check invariant suite runs on each package. **Tiers 1, 2a and 2b do not fully pass, and
+ship that way on purpose:**
+
+| package | passing | what fails |
+|---|---:|---|
+| tier1 | 8/9 | `id_provenance` — Tier 1 predates the provenance-tag convention; no row carries a source tag |
+| tier2a | 7/9 | `id_provenance`, plus 11 rows from one paper with GO ids written into a free-text prose field |
+| tier2b | 7/9 | `id_provenance`, plus 1 such row |
+| tier3 | 9/9 | — |
+| tier4 | 9/9 | — |
+
+These are **pre-existing, characterized properties of the earlier extraction passes**, not
+damage from packaging. The project rule is to flag and never silently repair: a suite tuned
+until it passes is not a suite. Each package's `docs/README.md` explains its own failures.
+
+## Repository layout
+
+```
+tier1/ tier2a/ tier2b/ tier3/ tier4/    five self-contained packages
+  data/     findings table (parquet + csv.gz), entity vocabulary, chunk map
+  docs/     README, DATA_DICTIONARY, METHODS, LIMITATIONS, COMPARABILITY,
+            WEBSITE_INTEGRATION
+  qa/       invariant results, quote census, per-package statistics
+  code/     pinned extraction pipeline, prompt, resolver, invariants, verifier
+  MANIFEST.json  CHECKSUMS.sha256  LICENSE  CITATION.cff
+OVERVIEW.md          all five compared
+COMPARABILITY.md     read before pooling packages
+PACKAGE_INDEX.csv    the comparison as a table
+```
+
+Each folder duplicates the shared files (entity vocabulary, chunk map, invariant modules) so
+that any single folder can be copied out and still work unaided.
+
+## Citing
+
+Each package has a `CITATION.cff` with a `PLACEHOLDER-DOI-<pkg>` field, to be filled in once
+the archival deposits are minted. **Cite the source papers for any finding that matters to
+your work** — every row carries `pmid`, `doi`, `title`, `journal` and `year`. Attributing this
+database is not a substitute for citing the researchers whose work it summarizes.
+
+## License
+
+Derived structured data: **CC BY 4.0**.
+
+The `provenance_quote` column contains **short verbatim excerpts from the source publications**
+— copyright of the respective publishers and authors, and **not** covered by CC BY. They exist
+so findings can be verified; median length is @@QUOTE_MEDIAN_CHARS@@ characters, typically one sentence. See
+[`LICENSE`](LICENSE) for the excerpt policy and the takedown commitment, which will be honored.
+

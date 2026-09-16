@@ -1,0 +1,95 @@
+# Five uploadable packages — index
+
+Built @@BUILD_UTC@@ from harmonized corpus `@@CORPUS_VID@@`.
+
+Each package stands alone: data (parquet + gzipped CSV), documentation, QA evidence, the
+pinned extraction and validation code, and a verifier that re-derives every documented number
+from the shipped data. No package requires another download or a network connection.
+
+## The partition
+
+Five blocks of one corpus. **Zero papers are shared between any two packages** — verified by
+pmid set intersection across all ten pairs at build time.
+
+| package | findings | papers | chunks | identifiers | id correctness † | quotes verifiable | invariants |
+|---|---:|---:|---:|---|---:|---:|---:|
+@@OVERVIEW_TABLE_ROWS@@
+| **total** | **@@TOTAL_FINDINGS@@** | **@@TOTAL_PAPERS@@** | **@@TOTAL_CHUNKS@@** | | | **@@CORPUS_VERIFIABLE_PCT@@%** | |
+
+Per-package counts sum exactly to the corpus totals.
+
+† **`id correctness` (`id_denotes_entity_rate`) is a TIER-level measurement.** It comes from
+adjudicated samples drawn per tier (t1 n=@@SAMPLE_N_T1@@, t2 n=@@SAMPLE_N_T2@@, t3 n=@@SAMPLE_N_T3@@, t4 n=@@SAMPLE_N_T4@@). Tier 2's sample
+spans both waves, so **Part A and Part B both show 0.7082 by inheritance — neither has a rate
+of its own.** Every other figure in the table, coverage included, is measured on each
+package's own slice (Part A @@T2A_ID_COVERAGE_PCT@@%, Part B @@T2B_ID_COVERAGE_PCT@@%). A per-wave proxy — exact string agreement
+against the authority label — puts the waves @@T2_STRING_AGREE_DIFF@@ points apart (@@T2A_STRING_AGREE@@% vs @@T2B_STRING_AGREE@@%), so they are
+unlikely to diverge materially, but the adjudicated rate was never split.
+
+## Tier 2 is split into the two extraction waves
+
+- **Part A** — @@T2A_CHUNKS@@ chunks, @@T2A_FINDINGS@@ findings, @@T2A_PAPERS@@ papers
+- **Part B** — @@T2B_CHUNKS@@ chunks, @@T2B_FINDINGS@@ findings, @@T2B_PAPERS@@ papers
+
+The waves share zero papers and their chunk ids **interleave** (Part B spans @@T2B_CHUNK_MIN@@–@@T2B_CHUNK_MAX@@), so the
+split is operational, not topical. Both cover the same nine themes, from one pipeline with one
+prompt — pool them freely.
+
+Part A is exactly the tier-2 layer currently deployed on the website: @@SITE_FINDINGS@@ − @@SITE_T1_ROWS@@ =
+@@T2A_FINDINGS@@. The site's *"~55% of tier 2"* caveat means precisely
+"Part A only".
+
+## Four things that will mislead you across packages
+
+1. **`id_resolved_frac` ranks the packages backwards.** It measures identifier *coverage*, not
+   *correctness*. Tier 2 has the most identifiers and nearly the worst; Tier 4 the fewest and
+   the best. Stratify on `ontology_id_verification`.
+2. **@@CORPUS_UNVERIFIABLE_ROWS@@ of @@TOTAL_FINDINGS@@ rows have a quote whose source text no longer exists.** Only Tier 4
+   retained body text. This is a retention failure, not an extraction failure — where source
+   survives, traceability is 94–99% with 0% wrong-paper false positives.
+3. **`ontology_id_source == 'unresolved_nulled'` has inverted meanings.** Identifier KEPT in
+   Tier 2, identifier NULLED in Tiers 3–4. The obvious filter silently drops 2,242 Tier-2 rows.
+
+Each package's `docs/COMPARABILITY.md` covers these in full, plus the five safe aggregates and
+the eleven metrics that are not comparable.
+
+4. **`condition` is a coarse population bucket and the `MCAS` bucket is ~69% mechanism-only papers.**
+   Use `annotations/condition_annotations.parquet`; see the root README, item 4.
+
+Each package's `annotations/` folder (v1.1) also carries the row-level quote-retrofit results for Tiers
+1–3 — verifiability 18.1% → 99.8% against re-fetched Europe PMC text — as additive tables. No `data/` row
+changed between v1 and v1.1.
+
+## Above all
+
+**Scientific fidelity is unmeasured.** Every QA check verifies well-formedness — quotes trace
+to source, identifiers carry provenance, invariants hold. Nothing verifies that a finding
+correctly *interprets* its source. That needs a human reader. Treat every row as a pointer to
+a paper worth reading, not as a fact.
+
+## Verify any package
+
+```
+tar -xzf pots-corpus-<pkg>-@@VERSION@@.tar.gz && cd pots-corpus-<pkg>-@@VERSION@@
+shasum -a 256 -c CHECKSUMS.sha256
+python code/verify_package.py --self-test
+```
+
+All five currently report 19/19 headline numbers re-derived, 6/6 planted regressions caught,
+and invariant results matching each README's declaration — including the three packages that
+correctly declare failures.
+
+## Deposit sidecars
+
+Every package carries `.zenodo.json`, `deposit/osf_metadata.json` and
+`deposit/github_release_notes.md`, plus `CITATION.cff`. **The DOI fields hold
+`PLACEHOLDER-DOI-<pkg>`** — deposit in any order, then backfill each package's four sibling
+references with the real DOIs before publishing.
+
+## Website
+
+Each package carries `docs/WEBSITE_INTEGRATION.md` describing what is new for the site from
+that package and what breaks on a careless load. In value order: **Tier 2 Part B** is the
+largest content addition (retires the ~55% caveat, @@SITE_FINDINGS@@ → @@SITE_AFTER_T2B@@ findings); **Tier 3**
+brings the first authority-verified identifiers and three facets the site cannot currently
+offer; **Tier 4** brings the only fully verifiable quotes.

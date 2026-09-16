@@ -1,0 +1,28 @@
+# Nothing generated belongs in this repo — every data file here is a deliberate deposit.
+__pycache__/
+*.py[cod]
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+# macOS resource forks. `tar` on macOS writes these next to real files, and they
+# reappear whenever the tree is copied to a non-native filesystem. Committing them
+# would put hundreds of 163-byte junk files in history.
+._*
+.AppleDouble/
+.Spotlight-V100
+.Trashes
+__MACOSX/
+.venv/
+venv/
+env/
+
+# Local extraction scratch: never commit re-fetched full text.
+# The corpus retains verbatim excerpts only (see LICENSE); a local cache of
+# whole articles is a different object with different terms.
+fulltext_cache/
+*.fulltext.gz
+refetch_scratch/
+
+# Build products of a deposit, not sources
+*.tar.gz
+*.zip

@@ -68,7 +68,8 @@ a `condition` bucket without a written definition, `target_chunks` that is not a
 | `pipeline/prompt_template.txt` | the extraction prompt with nine `{{slot}}`s filled from the config |
 | `calibration/` | `fidelity_calibration.py` and how to run its planted and agreement arms |
 | `annotations/README.md` | the additive-table convention: never mutate shipped tier data |
-| `build_packages.py` | corpus + config → N packages (stub; being reconstructed in a parallel track) |
+| `packaging/` | builder config for the POTS build + doc templates (`prose.json`, verifier, root-doc templates) |
+| `build_packages.py` | corpus + config → N packages; reproduces the POTS v1 build byte-for-byte (see `packaging/README.md`) |
 
 ## What was parameterised out of the Tier-4 code
 

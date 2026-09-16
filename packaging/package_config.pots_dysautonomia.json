@@ -1,0 +1,566 @@
+{
+ "version": "v1.1",
+ "project_title": "POTS/Dysautonomia Cross-Condition Literature Findings",
+ "templates_dir": "templates_v11",
+ "corpus": {
+  "filename": "findings_all_tiers.parquet",
+  "artifact": "f0b86f9a-f688-48c4-a08f-94e946afb9af",
+  "path": null
+ },
+ "corpus_totals": {
+  "findings": 148186,
+  "papers": 11519
+ },
+ "creator": {
+  "name": "Magennis, Erin",
+  "given": "Erin",
+  "family": "Magennis",
+  "orcid": "0009-0007-9013-8052"
+ },
+ "keywords": [
+  "POTS",
+  "postural orthostatic tachycardia syndrome",
+  "dysautonomia",
+  "ME/CFS",
+  "myalgic encephalomyelitis",
+  "chronic fatigue syndrome",
+  "Ehlers-Danlos syndrome",
+  "hypermobility",
+  "fibromyalgia",
+  "mast cell activation syndrome",
+  "long COVID",
+  "post-viral syndrome",
+  "small fiber neuropathy",
+  "autism",
+  "migraine",
+  "text mining",
+  "literature extraction",
+  "biomarkers",
+  "structured findings",
+  "text and data mining",
+  "large language model extraction"
+ ],
+ "dtype_fix_boolean_columns": [
+  "is_covid_associated",
+  "query_contamination",
+  "screen_verdict_uncertain"
+ ],
+ "_gzip_mtime_note": "gzip header mtimes of the v1 csv.gz files (epoch seconds). Used only with --pin-gzip-mtime to reproduce v1 byte-for-byte; otherwise the build epoch is used.",
+ "gzip_mtime": {
+  "tier1": 1788351325,
+  "tier2a": 1788351328,
+  "tier2b": 1788351330,
+  "tier3": 1788351333,
+  "tier4": 1788351334
+ },
+ "_tier2b_note": "chunk_id set of the second Tier-2 extraction wave (64 chunks). Derived from artifact abc8815f-1cb6-4f70-a967-6b48ff983687 (tier2_new62_findings_raw); equals MANIFEST.contents.chunk_ids of pots-corpus-tier2b-v1.",
+ "tier2b_chunk_ids": [
+  126,
+  130,
+  131,
+  133,
+  134,
+  138,
+  140,
+  141,
+  142,
+  143,
+  145,
+  146,
+  147,
+  149,
+  150,
+  151,
+  153,
+  154,
+  156,
+  157,
+  158,
+  159,
+  160,
+  163,
+  164,
+  165,
+  167,
+  168,
+  170,
+  171,
+  172,
+  173,
+  175,
+  177,
+  179,
+  180,
+  181,
+  182,
+  183,
+  184,
+  185,
+  187,
+  189,
+  190,
+  191,
+  193,
+  194,
+  196,
+  197,
+  198,
+  199,
+  200,
+  201,
+  202,
+  204,
+  205,
+  207,
+  209,
+  210,
+  214,
+  215,
+  216,
+  218,
+  219
+ ],
+ "packages": {
+  "tier1": {
+   "order": 1,
+   "label": "Tier 1",
+   "tier_source": "t1",
+   "wave": null,
+   "title": "Tier 1 — POTS and dysautonomia core literature",
+   "themes_desc": "dysautonomia, POTS, dysautonomia subtypes, hyperadrenergic POTS",
+   "chunk_range": "0–75",
+   "authority_derived": false,
+   "source_text_retained": false,
+   "id_denotes_entity_rate": 0.5784,
+   "id_denotes_entity_rate_short": 0.578,
+   "adjudicated_sample_n": 276,
+   "rate_measured_per_package": true,
+   "sibling_wave": null
+  },
+  "tier2a": {
+   "order": 2,
+   "label": "Tier 2 Part A",
+   "tier_source": "t2",
+   "wave": "A",
+   "title": "Tier 2 Part A — comorbid-condition literatures, first extraction wave",
+   "themes_desc": "EDS/hypermobility, ME/CFS, MCAS, RCCX genes, fibromyalgia, IBS, small-fiber neuropathy, patient-generated evidence, gastroparesis",
+   "chunk_range": "76–220 (81 of the 145 tier-2 chunks)",
+   "authority_derived": false,
+   "source_text_retained": false,
+   "id_denotes_entity_rate": 0.7082,
+   "id_denotes_entity_rate_short": 0.708,
+   "adjudicated_sample_n": 270,
+   "rate_measured_per_package": false,
+   "sibling_wave": "tier2b"
+  },
+  "tier2b": {
+   "order": 3,
+   "label": "Tier 2 Part B",
+   "tier_source": "t2",
+   "wave": "B",
+   "title": "Tier 2 Part B — comorbid-condition literatures, second extraction wave",
+   "themes_desc": "EDS/hypermobility, ME/CFS, MCAS, RCCX genes, fibromyalgia, IBS, small-fiber neuropathy, patient-generated evidence, gastroparesis",
+   "chunk_range": "126–219 (the remaining 64 tier-2 chunks, interleaved with Part A)",
+   "authority_derived": false,
+   "source_text_retained": false,
+   "id_denotes_entity_rate": 0.7082,
+   "id_denotes_entity_rate_short": 0.708,
+   "adjudicated_sample_n": 270,
+   "rate_measured_per_package": false,
+   "sibling_wave": "tier2a"
+  },
+  "tier3": {
+   "order": 4,
+   "label": "Tier 3",
+   "tier_source": "t3",
+   "wave": null,
+   "title": "Tier 3 — long COVID, post-viral and autism intersections",
+   "themes_desc": "long COVID autonomic, autism intersection, post-viral syndromes",
+   "chunk_range": "221–255",
+   "authority_derived": true,
+   "source_text_retained": false,
+   "id_denotes_entity_rate": 0.9857,
+   "id_denotes_entity_rate_short": 0.986,
+   "adjudicated_sample_n": 199,
+   "rate_measured_per_package": true,
+   "sibling_wave": null
+  },
+  "tier4": {
+   "order": 5,
+   "label": "Tier 4",
+   "tier_source": "t4",
+   "wave": null,
+   "title": "Tier 4 — migraine, hypermobility spectrum, Sjögren's, PANS/PANDAS",
+   "themes_desc": "migraine intersection, author-augmented papers, hypermobility spectrum, Sjögren's, PANS/PANDAS",
+   "chunk_range": "256–285",
+   "authority_derived": true,
+   "source_text_retained": true,
+   "id_denotes_entity_rate": 0.998,
+   "id_denotes_entity_rate_short": 0.998,
+   "adjudicated_sample_n": 56,
+   "rate_measured_per_package": true,
+   "sibling_wave": null
+  }
+ },
+ "site": {
+  "cur_findings": 73070,
+  "cur_papers": 6244,
+  "cur_entities": 2803,
+  "cur_shards": 13,
+  "cur_version": "combined-t1t2-1",
+  "t1_rows": 36459,
+  "shard_rows": 6000
+ },
+ "shared_inputs": {
+  "entity_vocabulary_crosstier.parquet": {
+   "artifact": "6cacff04-8fe2-400b-b829-b79f734edb8b"
+  },
+  "chunk_order.parquet": {
+   "artifact": "4f03bac3-f3e2-4a7c-b22f-b03b1a5939f0"
+  },
+  "comparability_report.json": {
+   "artifact": "a8192f2b-d42a-45df-bdc7-da4606ee6ca6"
+  },
+  "quote_census_all_tiers.json": {
+   "artifact": "31a85055-5c4e-408c-809d-92a1e8da552c"
+  }
+ },
+ "code_assets": {
+  "tier3_invariants.py": {
+   "artifact": "80f5187f-d152-4a6a-8bfd-a648e3f41384"
+  },
+  "tier3_invariants_ext.py": {
+   "artifact": "e761d88f-8f2b-432c-9222-cf3006cdfd74"
+  },
+  "quote_trace.py": {
+   "artifact": "ffc40716-4cb5-4554-a4dd-52e5743f5809"
+  },
+  "multi_authority_resolver.py": {
+   "artifact": "4240086b-c67c-4ac9-bfbb-c0632e0e34fc"
+  },
+  "resolution_cache.py": {
+   "artifact": "73924768-6511-4190-a8cc-50fc4813ec70"
+  },
+  "normalizer_tests.py": {
+   "artifact": "a731c42b-4af2-4b77-9759-60e131bdfa3d"
+  },
+  "crosstier_vocab.py": {
+   "artifact": "60ce2bbe-8591-483e-9d3c-5df3cae67b23"
+  },
+  "comparator_symmetry_tests.py": {
+   "artifact": "cb7fbf63-8bb9-4215-9723-7b6a24203410"
+  }
+ },
+ "pipe": {
+  "tier1": {
+   "pipeline": [
+    "extraction_pipeline.py",
+    {
+     "artifact": "2da2db65-c7b7-4850-85e5-9b8677e3ad28"
+    }
+   ],
+   "prompt": [
+    "schema_v5_extraction_prompt.txt",
+    {
+     "artifact": "9dfbbf58-aa24-4943-a97c-4f8fdac3c87c"
+    }
+   ],
+   "driver": [
+    "driver.py",
+    {
+     "artifact": "2f4ab9db-78ce-4409-a01c-bc578022d51c"
+    }
+   ],
+   "extra": {
+    "tier2_invariants.py": {
+     "artifact": "5775751c-9665-45f4-a303-a329d27acbe1"
+    },
+    "retrofit_fetch.py": {
+     "artifact": "50cd3c79-b957-412e-b784-08044b5896f9"
+    },
+    "retrofit_census.py": {
+     "artifact": "06351e66-fc10-48b3-93d2-d3e528bc8b85"
+    },
+    "build_report.py": {
+     "artifact": "a81c3bc1-2684-4d08-a685-951e36ca49dd"
+    }
+   }
+  },
+  "tier2a": {
+   "pipeline": [
+    "extraction_pipeline.py",
+    {
+     "artifact": "2da2db65-c7b7-4850-85e5-9b8677e3ad28"
+    }
+   ],
+   "prompt": [
+    "schema_v5_extraction_prompt.txt",
+    {
+     "artifact": "9dfbbf58-aa24-4943-a97c-4f8fdac3c87c"
+    }
+   ],
+   "driver": [
+    "driver_tier2_scoped.py",
+    {
+     "artifact": "8b4c508d-dc81-4087-9622-4c61b231b44b"
+    }
+   ],
+   "extra": {
+    "tier2_invariants.py": {
+     "artifact": "5775751c-9665-45f4-a303-a329d27acbe1"
+    },
+    "tier2_enum_validator.py": {
+     "artifact": "43210c10-af98-41c9-90cd-2133cf7f62c1"
+    },
+    "retrofit_fetch.py": {
+     "artifact": "50cd3c79-b957-412e-b784-08044b5896f9"
+    },
+    "retrofit_census.py": {
+     "artifact": "06351e66-fc10-48b3-93d2-d3e528bc8b85"
+    },
+    "build_report.py": {
+     "artifact": "a81c3bc1-2684-4d08-a685-951e36ca49dd"
+    }
+   }
+  },
+  "tier2b": {
+   "pipeline": [
+    "extraction_pipeline.py",
+    {
+     "artifact": "2da2db65-c7b7-4850-85e5-9b8677e3ad28"
+    }
+   ],
+   "prompt": [
+    "schema_v5_extraction_prompt.txt",
+    {
+     "artifact": "9dfbbf58-aa24-4943-a97c-4f8fdac3c87c"
+    }
+   ],
+   "driver": [
+    "driver_tier2_scoped.py",
+    {
+     "artifact": "8b4c508d-dc81-4087-9622-4c61b231b44b"
+    }
+   ],
+   "extra": {
+    "tier2_invariants.py": {
+     "artifact": "5775751c-9665-45f4-a303-a329d27acbe1"
+    },
+    "tier2_enum_validator.py": {
+     "artifact": "43210c10-af98-41c9-90cd-2133cf7f62c1"
+    },
+    "retrofit_fetch.py": {
+     "artifact": "50cd3c79-b957-412e-b784-08044b5896f9"
+    },
+    "retrofit_census.py": {
+     "artifact": "06351e66-fc10-48b3-93d2-d3e528bc8b85"
+    },
+    "build_report.py": {
+     "artifact": "a81c3bc1-2684-4d08-a685-951e36ca49dd"
+    }
+   }
+  },
+  "tier3": {
+   "pipeline": [
+    "extraction_pipeline_v6.py",
+    {
+     "artifact": "a3713196-943a-4ceb-837e-266c1a0413be"
+    }
+   ],
+   "prompt": [
+    "schema_v6_extraction_prompt.txt",
+    {
+     "artifact": "8380d0c4-624e-48e5-acc8-22a251c028aa"
+    }
+   ],
+   "driver": [
+    "driver_tier3_parts.py",
+    {
+     "artifact": "3326f0a4-c0e5-4dcf-bfc2-3d1572246a91"
+    }
+   ],
+   "extra": {
+    "tier3_merge.py": {
+     "artifact": "97218227-feae-43ee-9c63-de64d11fa866"
+    },
+    "tier3_qa.py": {
+     "artifact": "1a6a9788-ebb1-4853-9f36-ccf936875ea6"
+    },
+    "retrofit_fetch.py": {
+     "artifact": "50cd3c79-b957-412e-b784-08044b5896f9"
+    },
+    "retrofit_census.py": {
+     "artifact": "06351e66-fc10-48b3-93d2-d3e528bc8b85"
+    },
+    "build_report.py": {
+     "artifact": "a81c3bc1-2684-4d08-a685-951e36ca49dd"
+    }
+   }
+  },
+  "tier4": {
+   "pipeline": [
+    "tier4_pipeline.py",
+    {
+     "artifact": "e246e676-dae4-4d63-827d-604f6c7940bf"
+    }
+   ],
+   "prompt": [
+    "tier4_prompt.txt",
+    {
+     "artifact": "1991a0cd-02e6-49b8-b0ef-80a972dbaf85"
+    }
+   ],
+   "driver": [
+    "tier4_driver.py",
+    {
+     "artifact": "865cea12-5b52-4263-a67c-5c6bae8736bf"
+    }
+   ],
+   "extra": {
+    "tier4_resolver.py": {
+     "artifact": "00bb380c-db4f-4b48-847f-5e7df08ed99f"
+    },
+    "tier4_invariants_ext_v2.py": {
+     "artifact": "4487b309-db58-4cfa-8e3f-a56157b9d9e5"
+    },
+    "tier4_quote_census.py": {
+     "artifact": "02872825-bd3f-4a30-bea2-ad8d9c7d2715"
+    },
+    "tier4_driver_tests.py": {
+     "artifact": "0fff1b1a-b5c7-4ac4-bf52-06cc52ff26b7"
+    },
+    "tier4_scope_definition.txt": {
+     "artifact": "8fc69308-4022-4e39-9491-c46868ede0db"
+    }
+   }
+  }
+ },
+ "qa_extra": {
+  "tier1": {
+   "tier1_quote_fidelity.json": {
+    "artifact": "ad58c3c7-0e24-4b7e-b204-4dc1219aeea3"
+   },
+   "tier1_id_repair_summary.json": {
+    "artifact": "1c1b82cc-a33f-46aa-885b-58b1adc4392e"
+   },
+   "tier1_validation_stats.json": {
+    "artifact": "2539176b-6326-4555-868a-b55aa330dd16"
+   },
+   "tier1_golden_facts.json": {
+    "artifact": "a162d89e-22ac-4a3c-8747-e8acd59f427b"
+   }
+  },
+  "tier2a": {
+   "tier2_qa_report.json": {
+    "artifact": "df00dc37-9b82-4c39-8e5a-bd06914ea670"
+   },
+   "tier2_quote_census.json": {
+    "artifact": "4354bef9-d92c-4bbc-9f37-60dae6394cff"
+   },
+   "tier2_final_invariants.json": {
+    "artifact": "9f8c6d30-2770-43eb-acbf-a8079e580546"
+   },
+   "tier2_completion_summary.json": {
+    "artifact": "8efe8b02-7f0b-475f-a48c-3561ee743caa"
+   },
+   "tier2_golden_facts.json": {
+    "artifact": "86d6ee81-7bb4-44b5-a81c-8173269d8772"
+   },
+   "tier2_field_fill_rates.csv": {
+    "artifact": "8ccd95d7-bc45-4939-a414-0934673211ec"
+   }
+  },
+  "tier2b": {
+   "tier2_qa_report.json": {
+    "artifact": "df00dc37-9b82-4c39-8e5a-bd06914ea670"
+   },
+   "tier2_quote_census.json": {
+    "artifact": "4354bef9-d92c-4bbc-9f37-60dae6394cff"
+   },
+   "tier2_final_invariants.json": {
+    "artifact": "9f8c6d30-2770-43eb-acbf-a8079e580546"
+   },
+   "tier2_completion_summary.json": {
+    "artifact": "8efe8b02-7f0b-475f-a48c-3561ee743caa"
+   },
+   "tier2_golden_facts.json": {
+    "artifact": "86d6ee81-7bb4-44b5-a81c-8173269d8772"
+   },
+   "tier2_field_fill_rates.csv": {
+    "artifact": "8ccd95d7-bc45-4939-a414-0934673211ec"
+   }
+  },
+  "tier3": {
+   "tier3_qa_35.json": {
+    "artifact": "3409cf04-79ce-41c7-b5b6-29b3f2073328"
+   },
+   "invariants_35_final.json": {
+    "artifact": "40f0474c-a489-4771-a4f8-c0268a7e3be3"
+   },
+   "merge_report_35.json": {
+    "artifact": "9d8e98ca-2c32-45c6-9200-68275443c10c"
+   },
+   "corpus_stats_35.json": {
+    "artifact": "30422ee6-6635-41fa-8bcd-3050948c217a"
+   },
+   "resolve_stats.json": {
+    "artifact": "8d5cbb35-4aaa-41a2-9560-981f8364100c"
+   }
+  },
+  "tier4": {
+   "tier4_qa_report.json": {
+    "artifact": "f459ac0a-dd92-42eb-8da9-a37a5c86118a"
+   },
+   "tier4_invariants.json": {
+    "artifact": "ccc42a31-64b3-477b-a5ec-77dbd0ca41d2"
+   },
+   "tier4_quote_census.json": {
+    "artifact": "c3a9e70a-eb9c-419f-8066-07ec329348a9"
+   },
+   "tier4_provenance_audit.json": {
+    "artifact": "3e5ce836-1841-4cda-ac0c-41438eb008b7"
+   },
+   "tier4_measure_authority_eval.json": {
+    "artifact": "ba8981a6-7d6e-4915-9885-022966a1261b"
+   },
+   "tier4_screening_final_summary.json": {
+    "artifact": "9729785d-ce05-4927-894e-75704cbcd243"
+   },
+   "tier4_pilot_gate.json": {
+    "artifact": "cf262540-6e5d-48ab-a883-00de7048aee6"
+   }
+  }
+ },
+ "scope_extra": {
+  "tier3": {
+   "tier3_offtopic_pmids.csv": {
+    "artifact": "d0e7e2cb-626c-48b5-8071-710aa43a4823"
+   },
+   "tier3_noyield_pmids.csv": {
+    "artifact": "cc938e92-78f5-4974-a7af-cd4801e9d31e"
+   },
+   "noyield_triage_sample.csv": {
+    "artifact": "d8625d1c-9bf0-428d-97d0-3e1248e9c6d8"
+   }
+  },
+  "tier4": {
+   "tier4_excluded_pmids_final.csv": {
+    "artifact": "41850ae6-a98a-4b6a-bc95-d658bf64bbd3"
+   },
+   "tier4_screening_report_final.csv": {
+    "artifact": "45576b6a-cdf2-4cb1-8e54-02c2662e9e82"
+   }
+  }
+ },
+ "figures": {
+  "tier3": {
+   "fig_tier3_overview.png": {
+    "artifact": "b179bcfa-1e26-45b1-b0c0-1b93ff2f08bd"
+   },
+   "fig_tier3_qa.png": {
+    "artifact": "6f14ea32-07a3-483e-8a7b-476967d5552d"
+   }
+  }
+ },
+ "_v11_note": "v1.1: docs revision + additive annotations/ + nullable boolean dtype; no data row changed. Build with --docs-revision v1.1 --dtype-fix --annotations annotations_v11"
+}
