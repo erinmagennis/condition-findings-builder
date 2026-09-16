@@ -1,0 +1,183 @@
+# condition-corpus-builder — CONFIG TEMPLATE
+#
+# Copy to config/<area_slug>.yaml, fill every field, then:
+#     python pipeline/config.py validate  config/<area_slug>.yaml
+#     python pipeline/config.py render-prompt config/<area_slug>.yaml > prompt_rendered.txt
+# The validator REJECTS (not warns) a non-literal model id, retain_source_text != true, a
+# condition bucket without a written definition, and target_chunks that is not an explicit
+# list. Those four rules were each paid for on the POTS build (see RUNBOOK.md stage 0,
+# PITFALLS.md). Every value below is a PLACEHOLDER that satisfies the validator so the
+# template itself can be tested (pipeline/config_tests.py); replace all of them.
+#
+# The worked example with real values is config/pots_dysautonomia.yaml.
+
+area:
+  # Human-readable name of the condition AREA (one sentence). Appears in the worker brief
+  # and package titles.
+  name: "EXAMPLE AREA — replace: e.g. 'long COVID and post-acute infection syndromes'"
+  # Short identifier: lowercase, underscores. Used in archive metadata and file names.
+  slug: example_area
+  # Fills `{{area_description}}` in the first sentence of the extraction prompt:
+  # "...knowledge base on {{area_description}}." Keep it a slash-separated list of the
+  # condition names the model should recognise as the corpus's subject.
+  description_for_prompt: "EXAMPLE-A/EXAMPLE-B (and their EXAMPLE-C intersections)"
+  # Condition FAMILIES with illustrative members. Stated as families, not a closed list —
+  # a closed list reads as exhaustive no matter what the surrounding prose says (the POTS
+  # screen excluded familial dysautonomia from a dysautonomia corpus: 303 vs 20 off-topic).
+  # Drives the draw (stage 1) and the screen (stage 3).
+  families:
+    - name: example family one
+      members: [example condition, example variant, example synonym]
+    - name: example family two
+      members: [example comorbidity]
+
+# ABBREVIATION COLLISIONS — every abbreviation the area's queries use, with the FOREIGN
+# senses that will contaminate the draw. Cannot be fixed after extraction, only flagged.
+# The validator warns when this list is empty. POTS examples: ASD = autism / atrial septal
+# defect / adult spinal deformity (28 papers, 40 findings entered on the wrong sense).
+abbreviation_collisions:
+  - term: EXA
+    corpus_sense: the sense this corpus means
+    offtopic_senses: [a foreign sense, another foreign sense]
+
+condition:
+  # ---- SEMANTICS DECISION (stage 0, non-negotiable to write down) ---------------------
+  # `population`: `condition` = the patient POPULATION the paper studied. A mechanism paper
+  #               with no such population is `general`.
+  # `relevance` : `condition` = the condition the FINDING informs; then the bucket is a
+  #               relevance tag, and the data dictionary must say so prominently, because the
+  #               intuitive reading is the population one.
+  # The POTS build never wrote this down; its MCAS bucket (1,083 papers) turned out to be
+  # ~69% mast-cell biology with no MCAS population, ~10% MCAS as later defined, ~5%
+  # mastocytosis. Decide BEFORE extraction.
+  semantics: population
+  # One or two full sentences stating the decision and what a violation is called.
+  semantics_statement: >-
+    `condition` names the patient POPULATION the paper studied; a paper that carries a condition
+    label without studying that population is a bucket violation recorded in the additive
+    annotations table, never corrected in place.
+  # Version string of the definitions below. Re-run any label audit when it changes.
+  definitions_version: "v1 (YYYY-MM-DD)"
+  # ---- THE ENUM, EACH BUCKET WITH A WRITTEN DEFINITION ---------------------------------
+  # Order = order rendered into the prompt. Keep `multiple` and `general` (SCHEMA.md).
+  # A definition states inclusions AND the nearest exclusion (what does NOT belong and where
+  # it goes instead). A 42-point swing in an AI scorer's flag rate (41.7% -> 0% -> 12.5% on
+  # the same 24 rows) came from the definition wording alone.
+  enum:
+    - value: EXAMPLE_A
+      definition: >-
+        Example condition A as the studied population, including its named subtypes; the nearest
+        exclusion is condition X, which goes to `general`.
+    - value: EXAMPLE_B
+      definition: >-
+        Example condition B as the studied population; excludes condition Y, a distinct diagnosis.
+    - value: multiple
+      definition: >-
+        Several listed conditions are subjects of the paper.
+    - value: general
+      definition: >-
+        The correct answer when no listed condition is the paper's subject. A catch-all by design;
+        "too vague" is not a defect.
+  # Optional subtype field for ONE condition. Renders `"{{subtype_field}}": "if
+  # condition={{subtype_condition}} and subtype named: one of {{subtype_values}}, else null"`.
+  # Omit the block entirely if the area has no subtype axis.
+  subtype:
+    field: example_a_subtype       # column name in the findings table
+    condition: EXAMPLE_A           # must be a value in `enum`
+    values: [subtype one, subtype two, not specified]
+
+# Examples that appear inside the extraction prompt's field descriptions. Keep them short and
+# area-appropriate; they steer, they do not constrain.
+prompt:
+  template: pipeline/prompt_template.txt   # do not rewrite the template; fill it
+  pathogen_examples: "EBV/Lyme"                              # {{pathogen_examples}}
+  phenotype_example: "example phenotype; another phenotype"  # {{phenotype_example}} — semicolon-separated names
+  instrument_examples: "SF-36, PROMIS"                       # {{instrument_examples}}
+  cohort_examples: "UK Biobank, All of Us"                   # {{cohort_examples}}
+
+scope:
+  # The screening-arm text (stage 3). EITHER write it in full under `text` (recommended once
+  # the area is understood — the POTS build hand-wrote 38 lines) OR leave `text` empty and
+  # `python pipeline/config.py render-scope` composes it from area.families +
+  # abbreviation_collisions + topical_drift with the ILLUSTRATIVE-NOT-EXHAUSTIVE framing.
+  # Either way the text must (a) say the lists are not exhaustive, (b) define OFF TOPIC as
+  # exactly two things — wrong abbreviation sense and topical drift — and (c) say a
+  # multi-disease study that includes an in-scope condition is IN scope.
+  text: ""
+  topical_drift: >-
+    describe the neighbouring literature that shares vocabulary but not the research question
+    (for POTS: orthopaedic joint-laxity papers; rare syndromes listing hypermobility incidentally)
+
+# Publication-year window of the draw. Recorded in package metadata.
+year_range:
+  start: 2020
+  end: 2026
+
+model:
+  # THE LITERAL MODEL IDENTIFIER STRING. Required. Never a role ("a current reasoning model"),
+  # never "latest". It is recorded in METHODS.md of every package and pinned into every
+  # worker; verify_pinned_params() checks it. The POTS build: "claude-sonnet-5".
+  id: "example-model-id-1"
+  max_tokens_fulltext: 32000   # >= 32000 for a full-text paper
+  max_tokens_abstract: 8000    # >= 8000 for title+abstract
+  max_tokens_screen: 2000      # >= 2000 for ANY JSON-emitting screen: at 600, 180 came back empty
+
+# PINNED PARAMETERS. Carried unchanged across the POTS build's four tiers; the yield and
+# blocked-fetch gates were calibrated on them. The validator WARNS on any deviation.
+pinned:
+  papers_per_chunk: 50        # the unit of work, resume, provenance and comparability
+  fetch_pacing_s: 0.9         # seconds between Europe PMC fetches per worker
+  fetch_attempts: 6           # exponential backoff on 429/5xx; 4 left residual 503s
+  n_inflight: 3               # concurrent workers. NEVER above 3: ~8.5 req/s -> 92% blocked
+  n_parts_default: 2          # 2 parts x 25 papers fit under the 2.0M per-frame token ceiling;
+                              # 1 is fine for an abstract-heavy area (see RUNBOOK stage 4)
+  max_attempts: 3             # per work unit
+  worker_max_s: 3000          # watchdog; every reclaimed unit succeeded on attempt 2
+  collect_slice_s: 120
+  min_yield: 0.60             # papers yielding >=1 finding / papers dispatched, per unit
+  warn_blocked: 0.05          # blocked-fetch fraction that warns
+  max_blocked: 0.35           # blocked-fetch fraction that fails the unit (systematic)
+  min_ft_chars: 2000          # below this a "full text" response is a stub, not full text
+  ft_input_char_cap: 120000   # characters of body text handed to the model
+  llm_concurrency: 8          # parallel model calls inside one worker
+
+# NON-NEGOTIABLE. Must be true; the validator refuses false. The pipeline writes the EXACT
+# text handed to the model to chunk_NNN[_partIofN]_fulltext.json.gz (~0.1 MB gz per
+# half-chunk). Without it a provenance quote can never be re-checked: the POTS build
+# discarded body text for three tiers and 108,549 of 148,186 rows are permanently
+# uncheckable; the one tier that retained it reached 100% verifiable quotes.
+retain_source_text: true
+
+# Decode HTML entities (html.unescape, twice) BEFORE the model reads the text. Default true.
+# The POTS build did not, so 128 shipped quotes carry raw entity codes such as
+# `p&#x202f;<&#x2009;0.001`. They are verbatim to what the model read; the census compares
+# with symmetric normalization (quote_trace.normalize on BOTH sides) and they trace 42/42.
+# Never "repair" a stored quote — the repair destroyed traceability where it was tried.
+unescape_source_text: true
+
+tier:
+  number: 1                    # integer written into every findings row (`tier`)
+  label: "Tier 1 — core condition"
+  # EXPLICIT LIST of chunk ids for this tier. Never range(N): a driver with N_CHUNKS=286
+  # would have dispatched three unasked tiers. Boundary chunks assigned in writing (stage 1).
+  target_chunks: [0, 1, 2, 3]
+  # Analysis environment name the worker brief tells the sub-agent to use.
+  env_name: litmap
+
+artifacts:
+  # Artifact-store version ids the driver pins. Fill after stage 1 (roster) and after saving
+  # pipeline/pipeline.py and the rendered prompt as artifacts. The driver embeds the rendered
+  # prompt into every worker, so prompt_vid is provenance, not a runtime dependency.
+  roster_vid: ""
+  pipeline_vid: ""
+  prompt_vid: ""
+
+package:
+  author: "Surname, Given"
+  orcid: "0000-0000-0000-0000"
+  license_code: MIT            # code in the packages' code/ folder
+  license_docs: CC-BY-4.0      # docs
+  license_data: CC-BY-4.0      # derived structured data; NOT the verbatim excerpts (PACKAGING.md)
+  doi_concept: "10.5281/zenodo.PLACEHOLDER"   # grep -r PLACEHOLDER before deposit
+  doi_version: "10.5281/zenodo.PLACEHOLDER"
+  repository: "https://github.com/PLACEHOLDER/example-corpus"

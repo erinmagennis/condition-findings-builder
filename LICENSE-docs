@@ -1,0 +1,8 @@
+The documentation in this repository — every *.md file and the files under config/ — is
+licensed under the Creative Commons Attribution 4.0 International licence (CC BY 4.0).
+https://creativecommons.org/licenses/by/4.0/
+
+You may share and adapt it for any purpose, provided you give appropriate credit
+(Erin Magennis, condition-corpus-builder), link to the licence, and indicate changes.
+
+The code (pipeline/, calibration/, build_packages.py) is licensed MIT — see LICENSE.
