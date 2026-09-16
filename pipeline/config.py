@@ -18,7 +18,7 @@ Validation is deliberately strict about the things that were paid for:
   * `model.id` must be a literal string (never "current"/"latest"/empty). Every
     package's METHODS records the literal id that produced it.
   * `retain_source_text` must be true. Discarding body text after extraction made
-    108,549 of 148,186 rows permanently uncheckable on the POTS build.
+    108,549 of 148,186 rows (= 148,186 − 39,637 verifiable, recomputed from the data at every package build; a stale handoff document said 108,714 and is superseded) permanently uncheckable on the POTS build.
   * every `condition.enum` entry must carry a written `definition`, and
     `condition.semantics_statement` must say whether `condition` means the patient
     POPULATION studied or the condition a finding INFORMS. The MCAS bucket (1,083

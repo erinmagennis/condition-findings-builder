@@ -592,7 +592,7 @@
   "   tier 4 only."
  ],
  "tier4_screen_uncertain_prose_count": "2,257",
- "_note_tier4_screen_uncertain": "v1 docs state 1,960 screen_verdict_uncertain rows in four places; the shipped Tier 4 data has 2,257 rows with screen_verdict_uncertain == True (qa/package_stats.json flags.screen_verdict_uncertain). Kept as a prose constant to reproduce v1; flagged, not repaired.",
+ "_note_tier4_screen_uncertain": "v1 docs state 1,960 screen_verdict_uncertain rows in eight places (docs/README ×1, root README ×1, LIMITATIONS ×2, WEBSITE_INTEGRATION ×2, DATA_DICTIONARY ×1, COMPARABILITY ×1); the shipped Tier 4 data has 2,257 rows with screen_verdict_uncertain == True (qa/package_stats.json flags.screen_verdict_uncertain). Kept as a prose constant to reproduce v1; flagged, not repaired.",
  "code_roles": {
   "verify_package.py": "Re-derives every number in README/DATA_DICTIONARY from the shipped data; `--self-test` plants six regressions and asserts each is caught. Exits non-zero on disagreement.",
   "quote_trace.py": "Quote traceability matcher (`normalize`, `quote_traceability`) with its MANDATORY wrong-paper negative control. Read element [1] of the tuple.",

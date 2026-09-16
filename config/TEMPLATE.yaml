@@ -144,7 +144,7 @@ pinned:
 # NON-NEGOTIABLE. Must be true; the validator refuses false. The pipeline writes the EXACT
 # text handed to the model to chunk_NNN[_partIofN]_fulltext.json.gz (~0.1 MB gz per
 # half-chunk). Without it a provenance quote can never be re-checked: the POTS build
-# discarded body text for three tiers and 108,549 of 148,186 rows are permanently
+# discarded body text for three tiers and 108,549 of 148,186 rows (= 148,186 − 39,637 verifiable, recomputed from the data at every package build; a stale handoff document said 108,714 and is superseded) are permanently
 # uncheckable; the one tier that retained it reached 100% verifiable quotes.
 retain_source_text: true
 
