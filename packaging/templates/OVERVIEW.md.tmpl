@@ -44,9 +44,11 @@ Part A is exactly the tier-2 layer currently deployed on the website: @@SITE_FIN
 1. **`id_resolved_frac` ranks the packages backwards.** It measures identifier *coverage*, not
    *correctness*. Tier 2 has the most identifiers and nearly the worst; Tier 4 the fewest and
    the best. Stratify on `ontology_id_verification`.
-2. **@@CORPUS_UNVERIFIABLE_ROWS@@ of @@TOTAL_FINDINGS@@ rows have a quote whose source text no longer exists.** Only Tier 4
-   retained body text. This is a retention failure, not an extraction failure — where source
-   survives, traceability is 94–99% with 0% wrong-paper false positives.
+2. **@@CORPUS_UNVERIFIABLE_ROWS@@ of @@TOTAL_FINDINGS@@ rows have no shipped source text.** Only Tier 4 retained
+   body text. The v1.1 retrofit re-fetched Tier 1–3 source from Europe PMC and re-checked every quote
+   (@@CORPUS_VERIFIABLE_AFTER_PCT@@% of the corpus now has a checkable source; 0/400 false positives) — against
+   *current* text, not the bytes the model read. The `quotes verifiable` column below is the shipped-source
+   figure; the retrofit figures are additive, in each package's `annotations/`.
 3. **`ontology_id_source == 'unresolved_nulled'` has inverted meanings.** Identifier KEPT in
    Tier 2, identifier NULLED in Tiers 3–4. The obvious filter silently drops 2,242 Tier-2 rows.
 
@@ -82,9 +84,8 @@ correctly declare failures.
 ## Deposit sidecars
 
 Every package carries `.zenodo.json`, `deposit/osf_metadata.json` and
-`deposit/github_release_notes.md`, plus `CITATION.cff`. **The DOI fields hold
-`PLACEHOLDER-DOI-<pkg>`** — deposit in any order, then backfill each package's four sibling
-references with the real DOIs before publishing.
+`deposit/github_release_notes.md`, `deposit/ZENODO_FORM.md` (the values to paste into a manual
+Zenodo upload), plus `CITATION.cff`. @@DOI_STATUS_OVERVIEW@@
 
 ## Website
 

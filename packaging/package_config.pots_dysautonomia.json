@@ -135,7 +135,8 @@
    "id_denotes_entity_rate_short": 0.578,
    "adjudicated_sample_n": 276,
    "rate_measured_per_package": true,
-   "sibling_wave": null
+   "sibling_wave": null,
+   "slug": "dysautonomia-core-findings"
   },
   "tier2a": {
    "order": 2,
@@ -151,7 +152,8 @@
    "id_denotes_entity_rate_short": 0.708,
    "adjudicated_sample_n": 270,
    "rate_measured_per_package": false,
-   "sibling_wave": "tier2b"
+   "sibling_wave": "tier2b",
+   "slug": "comorbid-conditions-findings-a"
   },
   "tier2b": {
    "order": 3,
@@ -167,7 +169,8 @@
    "id_denotes_entity_rate_short": 0.708,
    "adjudicated_sample_n": 270,
    "rate_measured_per_package": false,
-   "sibling_wave": "tier2a"
+   "sibling_wave": "tier2a",
+   "slug": "comorbid-conditions-findings-b"
   },
   "tier3": {
    "order": 4,
@@ -183,7 +186,8 @@
    "id_denotes_entity_rate_short": 0.986,
    "adjudicated_sample_n": 199,
    "rate_measured_per_package": true,
-   "sibling_wave": null
+   "sibling_wave": null,
+   "slug": "postviral-autism-findings"
   },
   "tier4": {
    "order": 5,
@@ -199,7 +203,8 @@
    "id_denotes_entity_rate_short": 0.998,
    "adjudicated_sample_n": 56,
    "rate_measured_per_package": true,
-   "sibling_wave": null
+   "sibling_wave": null,
+   "slug": "migraine-hypermobility-findings"
   }
  },
  "site": {
@@ -562,5 +567,8 @@
    }
   }
  },
- "_v11_note": "v1.1: docs revision + additive annotations/ + nullable boolean dtype; no data row changed. Build with --docs-revision v1.1 --dtype-fix --annotations annotations_v11"
+ "_v11_note": "v1.1: docs revision + additive annotations/ + nullable boolean dtype; no data row changed. Build with --docs-revision v1.1 --dtype-fix --annotations annotations_v11",
+ "repo_name": "pots-findings",
+ "github_owner": "erinmagennis",
+ "_naming_note": "2026-09-16: repo `pots-findings` (existing GitHub repo); packages named for content, not tier — 96% of papers are not about POTS (POTS as condition: 13.7% / 0.1% / 0.2% / 0.1% / 1.1% of papers per tier). Tier is kept as MANIFEST.tier and in data file names."
 }

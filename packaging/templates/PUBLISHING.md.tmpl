@@ -20,10 +20,12 @@ DOI attaches to the file.
 For each of the five packages:
 
 1. New Upload -> drag `pots-corpus-<pkg>-@@VERSION@@.tar.gz`
-2. Zenodo reads `.zenodo.json` from inside the archive for most fields; verify the title,
-   description, keywords, license (CC BY 4.0) and your ORCID came through
+2. Zenodo does **not** read `.zenodo.json` from a manually uploaded archive (that file only drives
+   Zenodo's GitHub-release integration). Paste the fields from the package's
+   `deposit/ZENODO_FORM.md` — title, description, keywords, license (CC BY 4.0), version, ORCID,
+   related identifiers
 3. Under *Related identifiers*, the four sibling entries currently read
-   `PLACEHOLDER-DOI-<pkg>` with relation `isPartOf`
+   the four sibling DOIs with relation `references` (a sibling package is related, not a part)
 
 **The placeholder problem.** You cannot know the five DOIs before you deposit, and each package
 references the other four. Two ways out:
@@ -37,16 +39,11 @@ references the other four. Two ways out:
 
 Consider also a **Zenodo Community** for the five so they present as one collection.
 
-## 2. Backfill the DOIs
+## 2. DOIs
 
-Once the five DOIs exist, replace every `PLACEHOLDER-DOI-<pkg>` in:
+@@DOI_STATUS_PUBLISHING@@
 
-```
-<pkg>/CITATION.cff          (identifiers: and references:)
-<pkg>/.zenodo.json          (related_identifiers)
-```
-
-Then re-run the checksums, because you have edited files inside the packages:
+Before pushing, from the repository root:
 
 ```bash
 cd <pkg> && shasum -a 256 CITATION.cff .zenodo.json
@@ -59,7 +56,7 @@ find . -type f ! -name CHECKSUMS.sha256 ! -name MANIFEST.json \
 
 ## 3. GitHub
 
-**Attach the five per-tier tarballs as Release assets.** This is what makes single-tier download
+**Attach the five package tarballs as Release assets.** This is what makes single-tier download
 work for people who do not use Git — it is not optional garnish. The repo README points at
 `../../releases` for exactly this.
 
@@ -132,7 +129,7 @@ OSF can also link the GitHub repo directly, which keeps the two in sync without 
 - [ ] `python code/verify_package.py --self-test` passes in all five folders
 - [ ] `shasum -a 256 -c CHECKSUMS.sha256` clean in all five
 - [ ] Author name and ORCID correct in all five `CITATION.cff`
-- [ ] No `PLACEHOLDER-DOI` left anywhere (`grep -r PLACEHOLDER .`)
+- [ ] No DOI placeholder left anywhere (`grep -rl 'PLACEHOLDER-DOI' .` returns nothing — the pattern is split here so this line does not match itself)
 - [ ] No macOS junk: `find . -name '._*' -o -name '.DS_Store'` returns nothing. These are
       gitignored now, but a tree copied via macOS `tar` or a USB drive regrows them, and
       `tar -czf` on macOS emits them unless `COPYFILE_DISABLE=1` is set

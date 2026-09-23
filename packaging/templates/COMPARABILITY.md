@@ -109,10 +109,13 @@ its own source text still exists. Filter on `cap_quote_source_retained`, and rea
 `fulltext_status` — rows with `retrieved-fulltext` in Tiers 1–3 have quotes whose source is
 gone.
 
-Retrofit is feasible: a 97-paper stratified Tier-3 sample re-fetched **97/97** from Europe PMC,
-scoring 98.65% traceability against 0.77% for the same rows checked against abstracts alone.
-`code/refetch_fulltext.py` is not shipped, but the parameters that worked are in
-`docs/METHODS.md`.
+The v1.1 retrofit re-fetched every Tier 1–3 paper from Europe PMC and re-checked every quote:
+132,295 of 132,540 rows now have a checkable source (99.8%), full-text quotes trace at 97.9%, 0/400
+wrong-paper false positives in every stratum (`annotations/quote_retrofit_<pkg>.parquet`,
+`annotations/RETROFIT_REPORT.md`). **Do not pool this with Tier 4's figure**: Tier 4 traces against a
+retained, shipped archive of the bytes the model read; the retrofit traces against Europe PMC's current
+text, which is not shipped. `cap_quote_source_retained` is still the only column that means "the source
+is in this package".
 
 ### Trap 3 — the same column name means opposite things in different packages
 

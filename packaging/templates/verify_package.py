@@ -120,7 +120,7 @@ def annotation_checks(root, df, manifest):
                             expected="retrofit_traceable is null iff retrofit_source_depth == none", measured=null_rule))
         if p.name == "condition_annotations.parquet":
             a = pd.read_parquet(p)
-            pk = manifest["package"].replace("pots-corpus-", "").rsplit("-", 1)[0]
+            pk = manifest.get("tier") or manifest["package"].replace("pots-corpus-", "").rsplit("-", 1)[0]
             mine = a[a.package == pk]
             pm = set(df.loc[df.condition == "MCAS", "pmid"].astype(str))
             ok_cov = set(mine.pmid.astype(str)) == pm

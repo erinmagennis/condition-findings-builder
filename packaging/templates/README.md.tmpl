@@ -23,10 +23,15 @@ Five blocks of one corpus. **Zero papers are shared between any two** — verifi
 intersection across all ten pairs. Each folder stands alone: data, docs, QA evidence, pinned
 code, and a verifier that re-derives every documented number from the shipped data.
 
-| package | findings | papers | topic | identifiers | quotes verifiable |
-|---|---:|---:|---|---|---:|
+| package | findings | papers | topic | identifiers | @@VERIF_COL_HEADER@@ |
+|---|---:|---:|---|---|@@VERIF_COL_ALIGN@@|
 @@PACKAGE_TABLE_ROWS@@
-| **total** | **@@TOTAL_FINDINGS@@** | **@@TOTAL_PAPERS@@** | | | **@@CORPUS_VERIFIABLE_PCT@@%** |
+| **total** | **@@TOTAL_FINDINGS@@** | **@@TOTAL_PAPERS@@** | | | **@@CORPUS_VERIFIABLE_PCT@@%** | **@@CORPUS_VERIFIABLE_AFTER_PCT@@%** |
+
+"Shipped source" counts a quote as verifiable only if the text it was drawn from ships with the package
+(Tier 4's retained archive, or an abstract). "After re-fetch" is the v1.1 retrofit: every Tier 1–3 quote
+re-checked against Europe PMC's *current* text — a weaker guarantee than a retained archive, and not the
+bytes the model read. See "will mislead you" item 2.
 
 Start with any folder's `README.md`. [`OVERVIEW.md`](OVERVIEW.md) compares all five;
 [`COMPARABILITY.md`](COMPARABILITY.md) is the one document to read before pooling any of them.
@@ -60,7 +65,7 @@ git sparse-checkout set tier4
 git checkout
 ```
 
-You end up with `tier4/` plus the top-level docs, and none of the other tier folders. Add
+You end up with `tier4/` plus the top-level docs, and none of the other package folders. Add
 another later with `git sparse-checkout add tier3`.
 
 **Single file, no clone at all.** Every file has a direct URL, which is useful for a script
@@ -124,15 +129,19 @@ model emitted names only and a resolver looked identifiers up afterwards.
 
 **Always stratify on `ontology_id_verification`. Never pool `id_resolved_frac`.**
 
-### 2. Roughly three quarters of quotes cannot be re-checked
+### 2. Only one package ships the text its quotes came from
 
-Only Tier 4 retained body text after extraction. Elsewhere, a finding drawn from a paper's
-Results section has a quote with no surviving source. **@@CORPUS_UNVERIFIABLE_ROWS@@ of @@TOTAL_FINDINGS@@ rows are
-unverifiable.**
+Only Tier 4 retained body text after extraction. In the other four, **@@CORPUS_UNVERIFIABLE_ROWS@@ of
+@@TOTAL_FINDINGS@@ rows have no shipped source** — a *retention* failure, not an extraction failure.
 
-This is a *retention* failure, not an extraction failure — where source text survives,
-traceability is 94–99% with **0% wrong-paper false positives in every stratum**. The evidence
-was simply discarded. It is recoverable: a 97-paper pilot re-fetched 97/97 from Europe PMC.
+v1.1 re-fetched the source for every Tier 1–3 paper from Europe PMC and re-checked every quote
+(`annotations/quote_retrofit_<pkg>.parquet`): **@@CORPUS_VERIFIABLE_AFTER_ROWS@@ of @@TOTAL_FINDINGS@@ rows
+(@@CORPUS_VERIFIABLE_AFTER_PCT@@%) now have a checkable source**, full-text quotes trace at @@RETRO_FT_TRACE_PCT@@%, and
+wrong-paper false positives are 0/400 in every stratum. What that does *not* give you: the retrofit
+checks Europe PMC's text *today*, not the bytes the model read, and the fetched text is not shipped
+(LICENSE). @@RETRO_NO_SOURCE@@ rows have no source anywhere and @@RETRO_DOWNGRADED@@ full-text rows could only be
+checked against the abstract. Treat Tier 4's retained-archive traceability and the Tier 1–3 retrofit
+traceability as two different guarantees; never pool them.
 
 ### 3. One column has opposite meanings in different packages
 
@@ -259,8 +268,9 @@ that any single folder can be copied out and still work unaided.
 
 ## Citing
 
-Each package has a `CITATION.cff` with a `PLACEHOLDER-DOI-<pkg>` field, to be filled in once
-the archival deposits are minted. **Cite the source papers for any finding that matters to
+@@DOI_STATUS_README@@
+
+**Cite the source papers for any finding that matters to
 your work** — every row carries `pmid`, `doi`, `title`, `journal` and `year`. Attributing this
 database is not a substitute for citing the researchers whose work it summarizes.
 

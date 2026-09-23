@@ -42,8 +42,8 @@
     "body": "Six papers were pulled in by the ambiguous abbreviation 'ASD' — adult spinal deformity and atrial septal defect, not autism. Filter with `df[~df.query_contamination.fillna(False)]`. The 28 wrong-ASD PMIDs are listed in `scope/tier3_offtopic_pmids.csv`. Note that `query_contamination` means something DIFFERENT in Tier 4 — see COMPARABILITY.md."
    },
    {
-    "head": "Verifiability is the lowest in the corpus at 12.22%.",
-    "body": "Tier 3 had the highest full-text retrieval success (69% of papers), and full text was discarded after extraction — so its very success is why so few of its quotes can be re-checked. A 97-paper pilot re-fetched 97/97 from Europe PMC at 98.65% traceability, so this is recoverable."
+    "head": "Shipped-source verifiability is the lowest in the corpus at 12.22%.",
+    "body": "Tier 3 had the highest full-text retrieval success (69% of papers), and full text was discarded after extraction — so its very success is why so few of its quotes have a shipped source. The v1.1 retrofit re-fetched every paper and re-checked every quote (99.96% now have a checkable source; see the Annotations section and `annotations/quote_retrofit_tier3.parquet`), against Europe PMC's current text rather than a retained archive."
    }
   ],
   "tier4": [

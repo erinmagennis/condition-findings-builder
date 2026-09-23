@@ -6,7 +6,7 @@ repository. Someone starting a grounded literature-findings corpus for a **new c
 ME/CFS alone, long COVID, a rare-disease cluster — forks this tree, fills **one config file**, and
 runs the stages in `RUNBOOK.md`.
 
-This repository holds no data. The data lives in the companion `pots-corpus` repository, whose
+This repository holds no data. The data lives in the companion [`pots-findings`](https://github.com/erinmagennis/pots-findings) repository, whose
 five tier packages each ship the *pinned* code that produced them. This tree holds the canonical,
 condition-agnostic generation of that code (the Tier-4 generation, the last and most complete),
 the runbook, the failure catalogue, the schema, the packaging and fidelity protocols, and the
@@ -82,11 +82,11 @@ switches were added, both config-gated and both defaulting to the safe value for
 `unescape_source_text` (decode HTML entities before the model reads the text) and the enforced
 `retain_source_text`.
 
-## Relation to the `pots-corpus` data repository
+## Relation to the `pots-findings` data repository
 
-`pots-corpus/tier1 … tier4` are the frozen record: each package's `code/` is the exact generation
+The five `pots-findings` packages (`dysautonomia-core-findings`, `comorbid-conditions-findings-a/-b`, `postviral-autism-findings`, `migraine-hypermobility-findings`; extraction tiers 1–4 in `MANIFEST.tier`) are the frozen record: each package's `code/` is the exact generation
 that produced its rows (three generations across five packages) and is not superseded by this
-tree. `pots-corpus/annotations/` holds additive tables produced with the conventions in
+tree. each package's `annotations/` holds additive tables produced with the conventions in
 `annotations/README.md`. This tree is what you fork for the *next* corpus; the data repository is
 what you cite for the POTS findings.
 
