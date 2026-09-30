@@ -34,10 +34,13 @@ import json
 import os
 import re
 
-try:
-    import yaml
-except ImportError as e:  # pragma: no cover
-    raise ImportError("pyyaml is required: pip install pyyaml") from e
+# PyYAML is imported LAZILY (2026-09-30, EDS dry run). The driver must run in the orchestration
+# kernel — the only place `host.delegate` exists — and that kernel is stdlib-only (python -I -S,
+# no pyyaml, no pandas). A module-level `import yaml` made `driver.py` unimportable exactly where
+# it has to run. `load_config()` therefore also accepts a `.json` twin produced by
+# `python pipeline/config.py export-json config/<area>.yaml > config/<area>.json` (validated
+# identically), so the analysis kernel writes the JSON once and the orchestration kernel reads it.
+yaml = None
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
@@ -62,6 +65,12 @@ PINNED_DEFAULTS = {
     "min_ft_chars": 2000,
     "ft_input_char_cap": 120000,
     "llm_concurrency": 8,
+    # 2026-09-30 (EDS dry run): work-based unit sizing. A unit may carry at most this many papers
+    # expected to yield FULL TEXT; the driver raises the part count until it holds. 12 = the POTS
+    # 25-paper part at ~50% full text, on which WORKER_MAX_S=3000 was calibrated.
+    "max_fulltext_per_unit": 12,
+    # A watchdog-reclaimed unit is re-dispatched SPLIT (like a ceiling kill), never the same shape.
+    "watchdog_resplit": True,
 }
 MODEL_DEFAULTS = {"max_tokens_fulltext": 32000, "max_tokens_abstract": 8000,
                   "max_tokens_screen": 2000}
@@ -169,6 +178,16 @@ def validate(cfg, warn=print):
         w("abbreviation_collisions is empty — every abbreviation-based query inherits the "
           "wrong-sense contamination described in PITFALLS.md §6")
     cfg.setdefault("artifacts", {})
+    # Per-area filename prefix for chunk artifacts (findings parquet + retention archive).
+    # The driver's done-detector searches the WHOLE project's artifact store by filename, so a
+    # second area in the same project would otherwise find the first area's chunk_000_findings.parquet
+    # and dispatch nothing (measured on the EDS dry run: chunks 0-2 were "already done" from the
+    # POTS build). Default "<slug>_"; the POTS config sets "" to keep its legacy filenames.
+    if "file_prefix" not in cfg["artifacts"] or cfg["artifacts"]["file_prefix"] is None:
+        cfg["artifacts"]["file_prefix"] = f"{cfg['area']['slug']}_"
+    fp = str(cfg["artifacts"]["file_prefix"])
+    if fp and not re.fullmatch(r"[a-z0-9_]+_", fp):
+        raise ConfigError("artifacts.file_prefix must be lowercase [a-z0-9_] and end with '_' (or be empty)")
     cfg.setdefault("prompt", {})
     return warnings
 
@@ -179,7 +198,18 @@ def load_config(path=None, warn=print):
     if not path:
         raise ConfigError("no config path given and CORPUS_CONFIG is not set")
     with open(path, encoding="utf-8") as fh:
-        cfg = yaml.safe_load(fh)
+        if path.lower().endswith(".json"):
+            cfg = json.load(fh)
+        else:
+            global yaml
+            if yaml is None:
+                try:
+                    import yaml as _y; yaml = _y
+                except ImportError as e:
+                    raise ImportError("pyyaml is required to read a .yaml config: pip install pyyaml, "
+                                      "or point CORPUS_CONFIG at the .json twin written by "
+                                      "`python pipeline/config.py export-json <config.yaml>`") from e
+            cfg = yaml.safe_load(fh)
     if not isinstance(cfg, dict):
         raise ConfigError(f"{path} did not parse to a mapping")
     cfg["_path"] = os.path.abspath(path)
@@ -281,14 +311,15 @@ def pipeline_config(cfg):
         "roster_vid": cfg["artifacts"].get("roster_vid"),
         "prompt_vid": cfg["artifacts"].get("prompt_vid"),
         "area_slug": cfg["area"]["slug"],
+        "file_prefix": cfg["artifacts"]["file_prefix"],
     }
 
 
 if __name__ == "__main__":
     import sys
     if len(sys.argv) < 3 or sys.argv[1] not in ("render-prompt", "render-scope", "validate",
-                                                 "bucket-definitions"):
-        print("usage: python config.py render-prompt|render-scope|validate|bucket-definitions "
+                                                 "bucket-definitions", "export-json"):
+        print("usage: python config.py render-prompt|render-scope|validate|bucket-definitions|export-json "
               "<config.yaml>", file=sys.stderr)
         sys.exit(2)
     cfg = load_config(sys.argv[2], warn=lambda m: print(m, file=sys.stderr))
@@ -298,6 +329,11 @@ if __name__ == "__main__":
         print(render_scope(cfg))
     elif sys.argv[1] == "bucket-definitions":
         print(bucket_definitions_text(cfg))
+    elif sys.argv[1] == "export-json":
+        # the validated, defaults-filled config as JSON for the stdlib-only orchestration kernel
+        out = {k: v for k, v in cfg.items() if not k.startswith("_")}
+        out["_exported_from"] = os.path.basename(cfg["_path"])
+        print(json.dumps(out, indent=1, ensure_ascii=False))
     else:
         print(json.dumps({"ok": True, "warnings": cfg["_warnings"],
                           "condition_enum": condition_values(cfg), "model_id": cfg["model"]["id"]},

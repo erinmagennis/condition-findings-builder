@@ -150,8 +150,12 @@ cap_quote_source_retained  bool — is this row's source text archived?
 
 The roster parquet pinned as `artifacts.roster_vid` needs, per paper: `pmid`, `doi`, `title`,
 `abstract`, `year`, `journal`, `source_stream`, `theme` (and/or a list column `themes`),
-`is_covid` (bool; rendered into the prompt header), `chunk_id` (authoritative; the pipeline only
-synthesises one when the column is absent). Findings rows carry `pmid`, `doi`, `title`, `year`,
+`is_covid` (bool; rendered into the prompt header — a POTS-era slot the template still carries),
+`chunk_id` (authoritative; the pipeline only synthesises one when the column is absent). Optional
+flag columns ride through to every finding row when present: `query_contamination`,
+`screen_final_verdict`, `screen_verdict_uncertain`, `sample_stratum` (2026-09-30). For work-based
+unit sizing the driver also reads `pmcid` + `is_oa` (or `fulltext_expected`). Chunk artifacts are
+named `<artifacts.file_prefix>chunk_NNN[_partIofN]_findings.parquet` / `_fulltext.json.gz`. Findings rows carry `pmid`, `doi`, `title`, `year`,
 `journal`, `source_stream`, `theme`, `chunk_id`, `tier` (from `config.tier.number`).
 
 ## Prompt template slots

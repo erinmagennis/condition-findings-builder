@@ -227,6 +227,8 @@ pinned:
   min_ft_chars: 2000
   ft_input_char_cap: 120000
   llm_concurrency: 8
+  max_fulltext_per_unit: 12   # not in force on the POTS build; recorded default
+  watchdog_resplit: false     # the pinned Tier-4 driver re-dispatched the same shape; kept for the record
 
 retain_source_text: true
 # What Tier 4 ACTUALLY ran. The model read un-unescaped Europe PMC text, so 128 shipped quotes
@@ -243,6 +245,9 @@ tier:
   env_name: litmap
 
 artifacts:
+  # Legacy filenames (chunk_NNN_findings.parquet, no area prefix) — what the POTS tiers shipped.
+  # A NEW area leaves this unset and gets "<slug>_" (see TEMPLATE.yaml).
+  file_prefix: ""
   # Artifact-store version ids the Tier-4 driver was pinned to. A new build fills its own.
   roster_vid: "4b415524-411a-4912-9fd5-528165ee4324"     # tier4_roster.parquet
   pipeline_vid: "e246e676-dae4-4d63-827d-604f6c7940bf"   # tier4_pipeline.py v2

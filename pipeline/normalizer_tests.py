@@ -9,20 +9,15 @@ import re, html, unicodedata
 # Requiring the name be tag-like (letters/digits only, then space or '>') keeps 'x<y' as prose.
 # Whitelist of real HTML/JATS element names. A heuristic pattern cannot distinguish a tag from
 # prose like 'x<y then y>x' — that exact string defeated three successive regexes.
-TAGNAMES = ('p','br','b','i','em','strong','sub','sup','span','div','a','table','thead','tbody','tr',
- 'td','th','ul','ol','li','h1','h2','h3','h4','h5','h6','sec','title','abstract','article','front',
- 'body','back','ref','xref','italic','bold','underline','graphic','fig','caption','label','list',
- 'list-item','disp-quote','inline-formula','mml:math','tex-math','named-content','styled-content',
- 'break','hr','img','pre','code','blockquote','dl','dt','dd','tfoot','colgroup','col','col-group')
-
 GREEK = {'\u03b1':'a','\u03b2':'b','\u03b3':'g','\u03b4':'d','\u03b5':'e','\u03ba':'k','\u03bb':'l',
          '\u03bc':'u','\u03c3':'s','\u03c4':'t','\u03c9':'w','\u0394':'d','\u03a9':'w'}
 
-TAG = re.compile(r'</?(?:' + '|'.join(TAGNAMES) + r')(?:\s[^<>]*?)?/?>', re.I)
+import os, sys; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from quote_trace import TAG, TAGNAMES, strip_tags  # noqa: E402  one definition, shared with census/screen/pipeline
 
 def normalize(s):
     s = html.unescape(html.unescape(str(s)))   # twice: some sources double-encode
-    s = TAG.sub(' ', s)                        # tags -> SPACE, never '' (else words glue)
+    s = strip_tags(s)                          # block tags -> SPACE (never ''), inline tags -> ''
     s = unicodedata.normalize('NFKD', s)
     s = ''.join(c for c in s if not unicodedata.combining(c))
     s = ''.join(GREEK.get(c, c) for c in s)   # alpha1 vs a1 vs α1 must compare equal
@@ -38,6 +33,7 @@ CASES = [
  ("accent_stripped",       "Sj\u00f6gren syndrome",                          ["sjogren syndrome"], []),
  ("nbsp_collapses",        "small\u00a0fiber\u00a0neuropathy",               ["small fiber neuropathy"], []),
  ("self_closing_tag",      "line<br/>break",                                ["line break"], ["linebreak"]),
+ ("inline_tag_in_token",    "<i>PLOD1</i>-related kyphoscoliotic",           ["plod1 related kyphoscoliotic"], ["plod1  related"]),
  ("attribute_with_quotes", '<span class="x">tilt table</span>',              ["tilt table"], ["span", "class"]),
  ("math_lt_gt_pair",       "if x<y then y>x holds",                         ["if x y then y x holds"], []),
 ]

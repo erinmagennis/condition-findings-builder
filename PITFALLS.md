@@ -263,3 +263,33 @@ row's entity, nulling 197 rows instead of propagating a mismatch. Another found 
 - Sub-agents run in their own working directories. Pass files by artifact marker; retrieve outputs
   from the artifact store by filename, resolving the latest version.
 - Europe PMC rate-limits on **aggregate** concurrency across workers, not per worker.
+
+
+## 9 · Second-condition dry run (EDS/HSD, 2026-09-30) — what config could not fix
+
+Each item was found by running the repository on a second area with the POTS build's own rules,
+and is fixed in code with a test; details and numbers in `DRYRUN_EDS_REPORT.md`.
+
+1. **Artifact-store namespace.** The done-detector searched the project for `chunk_NNN_findings.parquet`
+   and found the POTS build's 245 chunks; an EDS run at chunk ids 0–2 was "already done" before it
+   started. Fix: `artifacts.file_prefix` (default `<slug>_`) in every chunk filename and both
+   detector regexes, anchored at both ends.
+2. **The orchestration kernel is stdlib-only.** `import yaml` at module level made the driver
+   unimportable where `host.delegate` lives. Fix: lazy import + `.json` config twin.
+3. **Units sized by count, not work.** 25/25 full-text papers as one unit exceeded `WORKER_MAX_S`
+   with nothing saved; the watchdog re-queued the identical shape twice. Fix: `plan_parts()`
+   (`max_fulltext_per_unit`), watchdog → re-split. The POTS fitted cost model under-projected output
+   tokens by 1.49x on this full-text-dense roster (1,017,779 measured vs 684,953 projected).
+4. **Tags in Europe PMC abstracts.** `<i>PLOD1</i>-related` broke 4/75 verbatim span checks; the
+   census normalizer never stripped tags while the test file tested one that did. Fix: one
+   `strip_tags` (inline tags → '', block tags → space) shared by pipeline, screen and tests.
+5. **Regex contamination filters over-exclude.** 8/10 "excluded" records were genuine EDS papers.
+   Flag, never exclude; the screen adjudicates.
+6. **The packaging script was the POTS build, not the method.** `build_packages.py` failed at
+   `partition()` on `tier_source`; `PACKAGING.md` claimed a generic interface that did not exist.
+   Fix: `--area-config` generic single-package mode.
+7. **Two runs, one log file.** `gate_log_parts.json` was clobbered by the second driver run.
+   Fix: per-run filenames.
+8. **`blocked` folded into the full-text census stratum**, contradicting stage 4's "distinct
+   stratum" rule. Fix: three strata; a <2-paper stratum says "no control possible" rather than
+   "matcher suspect".

@@ -19,7 +19,7 @@ WHY THIS FILE EXISTS
 """
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from quote_trace import quote_traceability, normalize
+from quote_trace import quote_traceability, normalize, strip_tags
 
 CLEAN_SRC = ("Orthostatic hypotension frequency was 35.8 % based on the supine-to-stand "
              "test, and heart-rate variability was reduced (p < 0.001) in the patient "
@@ -50,8 +50,25 @@ CASES = [
 ]
 
 
+TAG_CASES = [
+    # (name, raw_with_tags, expected normalized-after-strip)  — 2026-09-30, EDS dry-run screen
+    ("inline <i> inside a hyphenated token", "A severe case of <i>PLOD1</i>-related kyphoscoliotic",
+     normalize("A severe case of PLOD1-related kyphoscoliotic")),
+    ("inline <i> around a variable", "syndromes, <i>n</i> = 13 (including classical",
+     normalize("syndromes, n = 13 (including classical")),
+    ("block <p> must NOT glue words", "<p>chronic disease</p><p>The cohort</p>",
+     normalize("chronic disease The cohort")),
+    ("inequality is prose, not a tag", "Patients (P < .05). Eight improved > baseline.",
+     normalize("Patients (P < .05). Eight improved > baseline.")),
+]
+
+
 def run():
     failures = []
+    for name, raw, exp in TAG_CASES:
+        got = normalize(strip_tags(raw))
+        if got != exp:
+            failures.append(f"strip_tags/{name}: expected {exp!r}, got {got!r}")
     for name, q, s, exp in CASES:
         got = quote_traceability(q, s)[1]
         if got is not exp:
@@ -69,6 +86,6 @@ if __name__ == "__main__":
     f = run()
     for x in f:
         print("FAIL", x)
-    print(f"{len(CASES) - len([x for x in f if not x.startswith('normalize')])}/{len(CASES)} cases pass; "
+    print(f"{len(CASES) + len(TAG_CASES) - len([x for x in f if not x.startswith('normalize')])}/{len(CASES) + len(TAG_CASES)} cases pass; "
           f"{'OK' if not f else str(len(f)) + ' FAILURES'}")
     sys.exit(1 if f else 0)

@@ -159,6 +159,71 @@ def test_done_units(D):
     return cases
 
 
+def test_area_namespace(D):
+    """BUILDER 2026-09-30: a second area in the same project must not see the first area's
+    chunk artifacts as done. Measured on the EDS dry run: with the un-prefixed detector,
+    chunks 0-2 were 'already done' from the POTS build and nothing dispatched."""
+    cases = []
+    T = {0, 1, 2}
+    prev = D.FILE_PREFIX
+    try:
+        D.FILE_PREFIX = "eds_"
+        h = FakeHost(["chunk_000_findings.parquet", "chunk_001_findings.parquet", "chunk_002_findings.parquet",
+                      "chunk_000_fulltext.json.gz"])
+        d, p = D.done_units(h, T); aw, ap = D.archive_units(h, T)
+        cases.append(_case("other_area_chunks_are_not_done", (sorted(d), p, sorted(aw), ap), ([], {}, [], {}),
+                           "POTS chunk_000..002 must not satisfy an eds_ run"))
+        h = FakeHost(["eds_chunk_000_findings.parquet", "chunk_001_findings.parquet",
+                      "eds_chunk_002_part0of2_findings.parquet", "eds_chunk_002_part1of2_findings.parquet",
+                      "xeds_chunk_001_findings.parquet"])
+        d, p = D.done_units(h, T)
+        cases.append(_case("own_prefix_whole_and_part_set_done", sorted(d), [0, 2],
+                           "prefix anchored at the START: xeds_ is not eds_"))
+        D.FILE_PREFIX = ""
+        h = FakeHost(["chunk_000_findings.parquet", "eds_chunk_001_findings.parquet"])
+        d, _ = D.done_units(h, T)
+        cases.append(_case("legacy_empty_prefix_ignores_prefixed_files", sorted(d), [0],
+                           "the POTS config (prefix '') keeps its byte-identical legacy regex"))
+        task = D.build_task(1, None)
+        cases.append(_case("legacy_task_filename_unprefixed", "chunk_001_findings.parquet" in task, True))
+        D.FILE_PREFIX = "eds_"
+        task = D.build_task(1, (0, 2))
+        cases.append(_case("prefixed_task_filename", "eds_chunk_001_part0of2_findings.parquet" in task
+                           and "eds_chunk_001_part0of2_fulltext.json.gz" in task, True))
+    finally:
+        D.FILE_PREFIX = prev
+    return cases
+
+
+def test_work_based_sizing(D):
+    """BUILDER 2026-09-30: units are sized by expected FULL-TEXT count, and a watchdog reclaim
+    re-splits. Measured cause: EDS dry-run chunk 0 (25/25 OA papers, one unit) exceeded
+    WORKER_MAX_S with nothing saved and was re-queued in the same shape twice."""
+    import pandas as pd
+    cases = []
+    ro = pd.DataFrame({"chunk_id": [0]*25 + [1]*25 + [2]*25,
+                       "pmcid": ["PMC1"]*25 + ["PMC2"]*13 + [None]*12 + [None]*25,
+                       "is_oa": [True]*25 + [True]*13 + [False]*12 + [False]*25,
+                       "pmid": [str(i) for i in range(75)]})
+    cases.append(_case("all_fulltext_chunk_splits_to_3", D.plan_parts(ro, 0, n_parts_default=1, max_ft_per_unit=12)[0], 3,
+                       "25 expected full texts / cap 12 -> 3 parts even though n_parts_default=1"))
+    cases.append(_case("half_fulltext_chunk_splits_to_2", D.plan_parts(ro, 1, n_parts_default=1, max_ft_per_unit=12)[0], 2))
+    cases.append(_case("abstract_only_chunk_stays_whole", D.plan_parts(ro, 2, n_parts_default=1, max_ft_per_unit=12)[0], 1))
+    cases.append(_case("default_parts_is_a_floor", D.plan_parts(ro, 2, n_parts_default=2, max_ft_per_unit=12)[0], 2,
+                       "the pinned n_parts_default is never lowered by the density rule"))
+    ro2 = ro.assign(fulltext_expected=[True]*5 + [False]*70)
+    cases.append(_case("explicit_fulltext_expected_column_wins", D.plan_parts(ro2, 0, 1, 12)[0], 1))
+    ro3 = ro.drop(columns=["pmcid", "is_oa"])
+    cases.append(_case("unknown_flags_assume_all_fulltext", D.plan_parts(ro3, 2, 1, 12)[0], 3,
+                       "no flags -> every paper may be full text -> conservative split"))
+    body = open(D.__file__).read()
+    wd = body.index("WATCHDOG reclaimed"); rs = body.find("watchdog -> re-splitting", wd)
+    cases.append(_case("watchdog_reclaim_resplits", rs > wd and "if WATCHDOG_RESPLIT" in body[wd:rs], True,
+                       "a time-out is re-dispatched smaller, exactly like a ceiling kill"))
+    cases.append(_case("watchdog_resplit_is_config_gated", "watchdog_resplit" in open(os.path.join(HERE, "config.py")).read(), True))
+    return cases
+
+
 def test_archive_never_gates(D):
     """T4-B: retention is reporting-only. A findings file with NO archive is still done,
     and an archive alone is never done."""
@@ -214,13 +279,24 @@ def test_task_ordering(D):
 
 def run_all(path=os.path.join(HERE, "driver.py")):
     D = load(path)
-    groups = {
-        "is_ceiling": test_is_ceiling(D),
-        "ceiling_not_budget_failure": test_ceiling_not_a_budget_failure(D),
-        "done_units": test_done_units(D),
-        "archive_never_gates": test_archive_never_gates(D),
-        "task_ordering": test_task_ordering(D),
-    }
+    # The legacy fixtures spell filenames without an area prefix (the POTS shape). Run them under
+    # FILE_PREFIX="" whatever config is loaded, so the suite is config-independent; the namespace
+    # group then exercises the prefixed behaviour explicitly.
+    _prev = D.FILE_PREFIX; D.FILE_PREFIX = ""; D.CODE_TMPL = D._fill_static(D.CODE_TMPL_RAW)
+    try:
+        groups = {
+            "is_ceiling": test_is_ceiling(D),
+            "ceiling_not_budget_failure": test_ceiling_not_a_budget_failure(D),
+            "done_units": test_done_units(D),
+            "archive_never_gates": test_archive_never_gates(D),
+            "task_ordering": test_task_ordering(D),
+        }
+    finally:
+        D.FILE_PREFIX = _prev; D.CODE_TMPL = D._fill_static(D.CODE_TMPL_RAW)
+    groups.update({
+        "area_namespace": test_area_namespace(D),
+        "work_based_sizing": test_work_based_sizing(D),
+    })
     n = sum(len(v) for v in groups.values())
     npass = sum(1 for v in groups.values() for c in v if c["pass"])
     return {"n_cases": n, "n_pass": npass, "n_fail": n - npass,

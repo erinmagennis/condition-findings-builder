@@ -70,9 +70,11 @@ not-exhaustive framing.
 
 ## Stage 1 — Draw the universe and freeze the chunk order
 
-Draw with Europe PMC thematic queries per condition family (any tool; the roster contract the
-pipeline expects is in `SCHEMA.md` § Roster), deduplicate on PMID, and run the abbreviation-collision
-filter from `config.abbreviation_collisions`. Then:
+Draw with `pipeline/draw.py` (one Europe PMC query per theme from the config's `draw:` block; the
+roster contract the pipeline expects is in `SCHEMA.md` § Roster), deduplicate on PMID, and FLAG —
+never exclude — records matching `draw.contamination_patterns` (`query_contamination=true`; the
+screen adjudicates). On the EDS dry run 8 of 10 regex "exclusions" were genuine EDS papers: sleep
+apnoea IN hEDS matched "excessive daytime sleepiness". Then:
 
 1. Assign every paper a **theme tag** from the query that found it. Theme is the unit of
    off-topic-rate reporting later, and the rates differ enormously by theme — one build measured
@@ -122,8 +124,14 @@ Screening is per-record LLM work and therefore subject to everything in `PITFALL
 per-frame token ceiling at 1.693M, then a reflexive retry added 0.625M; re-issued as three units
 it finished in 11 minutes. Call `plan_units()` first, always.
 
-**Arm 1 — rules.** Regex anchors for in-scope condition terms in title/abstract. Verdicts:
-`anchor` / `no_anchor`.
+The code is `pipeline/screen.py` (`run_screen`, and `reconcile()` as a pure function over the saved
+per-paper report so a comparator fix never re-spends the screen). Compare model spans against
+title/abstract with `quote_trace.strip_tags` + `normalize` on BOTH sides: Europe PMC titles carry
+`<i>…</i>`; on the EDS dry run 4 of 75 verbatim spans failed on tags alone.
+
+**Arm 1 — rules.** Regex anchors for in-scope condition terms in title/abstract
+(`config.screen.rule_anchors`). Verdicts: `anchor` / `no_anchor`; a contamination pattern with no
+anchor → `off_topic`.
 
 **Arm 2 — LLM.** The rendered scope text plus the paper's title and abstract. Require a
 **verbatim span** with any `in_scope` verdict. `max_tokens >= 2000`: at 600, 180 responses came
@@ -136,7 +144,11 @@ and a Nav1.8 sympathetic-ganglia channelopathy.
 
 **Check the instrument, not the papers.** Run `screen_instrument_alarm()`. Arm disagreement of 3x
 or more means the screening prompt is broken. The 303-vs-20 disagreement was the tell; the
-corrected prompt gave 73 of 577.
+corrected prompt gave 73 of 577. **Caveat (EDS dry run):** on an anchor-drawn roster the rule arm's
+off-topic count is 0 by construction, the helper floors each arm at 1, and any LLM off-topic count
+≥ 3 fires. Audit the LLM off-topic list by title (`*_llm_offtopic_flagged.csv`) before calling the
+prompt broken; 13/13 read as legitimate drift or wrong sense there (incl. a new collision, HEDS =
+HCC Early Detection Strategy).
 
 **Uncertain papers are EXTRACTED and flagged**, never excluded. The cost of uncertainty is a
 flag; the cost of a wrong exclusion is lost data. 238 uncertain papers were extracted with
@@ -200,6 +212,15 @@ papers to abstract-only, mislabelled them `blocked`, and produced 5.51 findings/
 abstract-only. Record the actual HTTP status or exception in a `fetch_note` column; make `blocked`
 retryable with a post-run sweep.
 
+**Size units by WORK, not by paper count.** The driver's `plan_parts()` raises a chunk's part count
+until no unit carries more than `pinned.max_fulltext_per_unit` (12) papers expected to yield full
+text (roster `pmcid` + `is_oa`, or a `fulltext_expected` column). Measured: 25/25 full-text papers as
+one unit exceeded `WORKER_MAX_S=3000` with nothing saved (the worker saves all-or-nothing); the same
+papers as 3 parts took 700–1184 s each. A watchdog-reclaimed unit is re-dispatched SPLIT
+(`pinned.watchdog_resplit`), exactly like a ceiling kill — re-queuing the same shape re-queues the
+same timeout. Pass `roster_df=` to `driver.run()` (a DataFrame or a plain list of dict rows; the
+orchestration kernel is stdlib-only, so export the roster's `chunk_id/pmcid/is_oa` as JSON).
+
 **Per-chunk gate.** Yield >= `MIN_YIELD`, blocked <= `MAX_BLOCKED`, warn at `WARN_BLOCKED`.
 `blocked` is a **distinct stratum** — neither full-text nor abstract-only — and must be binned
 separately in every later audit. A chunk failing the floor for an access reason will not improve
@@ -219,9 +240,13 @@ not support the claim made about them in prose.
 
 ## Stage 5 — Resolve identifiers from names
 
-`pipeline/resolver.py` (multi-authority, exact-label, records the minting ontology) with
-`pipeline/resolution_cache.py`; `helpers.reject_id_shaped()` is the parser guard. The whole stage in
-three rules:
+`pipeline/resolve_stage.py` applies `pipeline/resolver.py` (multi-authority, exact-label, records the
+minting ontology) to the merged findings table with a persistent cache (`resolution_cache.parquet`,
+HPO terms memoised under the reserved kind `__hpo_term__`) and writes the resolution rate BY
+AUTHORITY with numerator/denominator/basis. It also re-tags `hpo_id_source` truthfully: the
+in-pipeline `ground_findings_df` still emits the bare `authority_lookup_ols_hp` tag, and invariant 9
+fired on those worker columns on the EDS dry run (1 MPATH id) — the stage's `_via_<mint>` tag is what
+passes. `helpers.reject_id_shaped()` is the parser guard. The whole stage in three rules:
 
 1. **Correspondence, not existence.** "Does this id exist?" is nearly worthless — dense id spaces
    mean almost any plausible integer exists. Ask "does this id denote THIS entity?" by comparing
@@ -345,8 +370,9 @@ strings are new. Rules:
 
 ## Stage 9 — Package for deposit
 
-See `PACKAGING.md`. `build_packages.py` (corpus + config → N self-contained packages) is the
-builder; save it as a first-class artifact and regenerate `CHECKSUMS.sha256` by script, never by
+See `PACKAGING.md`. `build_packages.py --area-config config/<area>.yaml` (→ one self-contained
+package via `packaging/generic_builder.py`; the legacy `--config` mode is the POTS five-package
+reproduction) is the builder; save it as a first-class artifact and regenerate `CHECKSUMS.sha256` by script, never by
 hand. `pipeline/verify_package.py --self-test` in every folder is the gate.
 
 ---
@@ -392,6 +418,13 @@ half-done and *why* (a transient connection error and a token-ceiling kill deman
 responses); the pinned parameter block; lessons from that session; and next actions in value
 order. Supersede old handoffs explicitly — several stale per-tier handoffs coexisting is its own
 failure mode.
+
+**Two kernels.** The driver runs where `host.delegate` lives — a stdlib-only kernel (no pyyaml,
+no pandas). Prepare `config/<area>.json` (`python pipeline/config.py export-json`) and the roster
+plan JSON in the analysis kernel; the driver reads those. Save the driver's logs per run
+(`<prefix>gate_log_parts_<run_tag>.json`); a driver cell that dies (EDS dry run: `host.collect`
+became unavailable after ~110 min) leaves in-flight children without a watchdog — check
+`host.children()` after any driver error.
 
 **Make every dispatch cell self-contained** — re-exec the driver, redefine the helpers. A wave
 silently did nothing for 146 minutes because a kernel restart between cells erased the wave

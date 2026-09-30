@@ -132,7 +132,9 @@ def census_stratum(df, srcmap, quote_traceability, label, n_control=400, seed=11
             "basis": (f"{ctrl_n} quotes matched against a DIFFERENT paper's retained "
                       f"text (seed {seed}); a working matcher reports ~0%"),
             "verdict": ("matcher discriminates" if fp is not None and fp < 0.05
-                        else "MATCHER SUSPECT - headline rate not trustworthy"),
+                        else ("NO CONTROL POSSIBLE (<2 papers with source text in this stratum) - "
+                              "rate reported WITHOUT a control; do not cite it alone" if ctrl_n == 0
+                              else "MATCHER SUSPECT - headline rate not trustworthy")),
         },
         "untraceable_examples": untraceable,
     }
@@ -147,18 +149,30 @@ def full_census(df, corpus, archive_paths, quote_traceability, n_control=400, se
     ft = load_archives(archive_paths)
     abs_map = {str(p): (a or "") for p, a in zip(corpus.pmid.astype(str),
                                                  corpus.abstract.fillna(""))}
+    # 2026-09-30: abstract-only rows are checked against the RETAINED archive first — the
+    # archive holds the text AS HANDED TO THE MODEL (entities decoded, tags stripped), whereas
+    # the roster abstract carries Europe PMC's raw <i>/<sub> tags. Roster text is the fallback
+    # only for a pmid the archive lacks; `n_from_roster_fallback` says how many.
+    n_fallback = sum(1 for p in df[df.fulltext_status == "abstract-only"].pmid.astype(str).unique() if p not in ft)
+    abs_src = {p: ft.get(p) or abs_map.get(p, "") for p in abs_map}
 
     is_abs = df.fulltext_status == "abstract-only"
-    a = census_stratum(df[is_abs], abs_map, quote_traceability,
+    is_blk = df.fulltext_status == "blocked"      # RUNBOOK stage 4: blocked is a DISTINCT stratum,
+    #                                                never folded into full-text or abstract-only.
+    a = census_stratum(df[is_abs], abs_src, quote_traceability,
                        "abstract-only", n_control, seed)
-    f = census_stratum(df[~is_abs], ft, quote_traceability,
+    a["source"] = "retained archive (text as handed to the model); roster abstract only as fallback"
+    a["n_papers_from_roster_fallback"] = int(n_fallback)
+    f = census_stratum(df[~is_abs & ~is_blk], ft, quote_traceability,
                        "full-text (archive-backed)", n_control, seed)
+    b = census_stratum(df[is_blk], {p: ft.get(p) or abs_map.get(p, "") for p in abs_map}, quote_traceability,
+                       "blocked (fetch failed; extracted from title+abstract)", n_control, seed)
 
     q = df[df.provenance_quote.notna() & (df.provenance_quote.astype(str).str.len() > 0)]
-    checked = a["n_checked"] + f["n_checked"]
-    traceable = a["n_traceable"] + f["n_traceable"]
+    checked = a["n_checked"] + f["n_checked"] + b["n_checked"]
+    traceable = a["n_traceable"] + f["n_traceable"] + b["n_traceable"]
     return {
-        "strata": [a, f],
+        "strata": [a, f, b],
         "n_archive_papers": len(ft),
         "coverage": {
             "n_rows_with_quote": int(len(q)),

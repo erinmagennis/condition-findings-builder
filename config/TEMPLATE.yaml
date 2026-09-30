@@ -140,6 +140,10 @@ pinned:
   min_ft_chars: 2000          # below this a "full text" response is a stub, not full text
   ft_input_char_cap: 120000   # characters of body text handed to the model
   llm_concurrency: 8          # parallel model calls inside one worker
+  max_fulltext_per_unit: 12   # a unit holds at most this many papers EXPECTED to yield full text; the
+                              # driver raises the part count until it does (EDS dry run: 25 full texts in
+                              # one unit exceeded worker_max_s with nothing saved)
+  watchdog_resplit: true      # a watchdog-reclaimed unit is re-dispatched SPLIT, never the same shape
 
 # NON-NEGOTIABLE. Must be true; the validator refuses false. The pipeline writes the EXACT
 # text handed to the model to chunk_NNN[_partIofN]_fulltext.json.gz (~0.1 MB gz per
@@ -165,6 +169,11 @@ tier:
   env_name: litmap
 
 artifacts:
+  # Filename prefix for this area's chunk artifacts (findings parquet + retention archive), e.g.
+  # "example_area_chunk_000_findings.parquet". Defaults to "<slug>_". The driver's done-detector
+  # searches the whole project's artifact store by filename; without a prefix a second area in
+  # the same project inherits the first area's chunks as "already done" and dispatches nothing.
+  # file_prefix: example_area_
   # Artifact-store version ids the driver pins. Fill after stage 1 (roster) and after saving
   # pipeline/pipeline.py and the rendered prompt as artifacts. The driver embeds the rendered
   # prompt into every worker, so prompt_vid is provenance, not a runtime dependency.

@@ -53,8 +53,15 @@ needed for a Git host.
 
 ## The builder is a script and an artifact
 
-`build_packages.py` (corpus + `config/<area>.yaml` → N packages with `MANIFEST.json`,
-`CHECKSUMS.sha256`, sidecars and `code/verify_package.py`) is the only way packages are built.
+`build_packages.py --area-config config/<area>.yaml --corpus ... --roster ... --qa-dir ... --scope-dir ...
+--archives-dir ...` (→ `packaging/generic_builder.py`) builds ONE self-contained package for a new area with
+`MANIFEST.json` (carrying `condition_enum` and `model_id`), `CHECKSUMS.sha256`, sidecars, the retained
+archives under `data/archives/` and `code/verify_package.py`; it is the only way packages are built. The
+script's legacy mode (`--config package_config.<area>.json`) is the POTS five-package reproduction and
+fails on any other corpus at `partition()` — it expects the cross-tier harmonization columns
+(`tier_source`, `cap_*`, ...) that the pipeline does not emit; the generic builder appends exactly the
+six the verifier reads and lists them as harmonization columns in `DATA_DICTIONARY.md`. Measured on the
+EDS dry run, 2026-09-30.
 Save it as a first-class artifact with the packages, and run it again after every DOI backfill.
 The POTS packages were first built by an inline cell that was never saved, so the packaging step
 could not be reproduced; the script is being reconstructed. **Regenerate checksums by script,

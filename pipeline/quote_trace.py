@@ -18,6 +18,35 @@ CONTRACT
 """
 import re, unicodedata, html
 
+# Whitelisted HTML/JATS element names (moved here from normalizer_tests.py so the census, the
+# screen and the pipeline share ONE definition). A heuristic '<[^>]+>' cannot tell a tag from
+# prose like '(P < .05). Eight improved > baseline' — that exact string defeated three regexes.
+TAGNAMES = ('p','br','b','i','em','strong','sub','sup','span','div','a','table','thead','tbody','tr',
+ 'td','th','ul','ol','li','h1','h2','h3','h4','h5','h6','sec','title','abstract','article','front',
+ 'body','back','ref','xref','italic','bold','underline','graphic','fig','caption','label','list',
+ 'list-item','disp-quote','inline-formula','mml:math','tex-math','named-content','styled-content',
+ 'break','hr','img','pre','code','blockquote','dl','dt','dd','tfoot','colgroup','col','col-group')
+TAG = re.compile(r'</?(?:' + '|'.join(TAGNAMES) + r')(?:\s[^<>]*?)?/?>', re.I)
+
+
+INLINE_TAGNAMES = ('b','i','em','strong','sub','sup','span','a','italic','bold','underline',
+                   'named-content','styled-content','xref')
+INLINE_TAG = re.compile(r'</?(?:' + '|'.join(INLINE_TAGNAMES) + r')(?:\s[^<>]*?)?/?>', re.I)
+
+
+def strip_tags(s):
+    """Block tags -> SPACE, never '' (else words glue: 'diseaseThe'); INLINE formatting tags
+    -> '' because they wrap a span inside running text ('<i>PLOD1</i>-related' must read
+    'PLOD1-related', not 'PLOD1 -related' — measured on the EDS dry-run screen, 2 of 75 spans).
+    Additive helper (2026-09-30): normalize() itself is the pinned census instrument and is left
+    unchanged; callers comparing model output against Europe PMC abstract text (which carries
+    <i>, <sub>, ...) apply strip_tags on BOTH sides first."""
+    if s is None:
+        return ""
+    s = INLINE_TAG.sub('', str(s))
+    return TAG.sub(' ', s)
+
+
 SHINGLE_N = 8
 THRESH = 0.60          # fraction of quote shingles that must appear in the source
 MIN_CHARS = 25         # quotes shorter than this are too weak to judge by overlap

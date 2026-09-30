@@ -31,6 +31,12 @@ DEFECTS THIS LOOP FIXES (re-verified by driver_tests.py):
   2. A ceiling kill NEVER counts toward the budget-halt fail-streak; it `continue`s after
      re-splitting, so `failed` is never incremented.
   3. done_units() treats a COMPLETE PART SET as done.
+
+BUILDER 2026-09-30 (EDS dry run): chunk artifact filenames carry the config's
+`artifacts.file_prefix` ("<slug>_" by default, "" for the legacy POTS names) and the
+done/archive detectors match the prefix anchored at BOTH ends. Without this, a second area in
+the same project saw the POTS build's chunk_000..002_findings.parquet as already done and
+dispatched nothing. With prefix "" the regexes are byte-identical to the Tier-4 driver's.
 """
 import json, os, re, sys, time
 
@@ -53,12 +59,15 @@ COLLECT_SLICE = int(_P["collect_slice_s"])
 N_PARTS_DEFAULT = int(_P["n_parts_default"])
 PAPERS_PER_CHUNK = int(_P["papers_per_chunk"])
 
+MAX_FT_PER_UNIT = int(_P.get("max_fulltext_per_unit", 12))   # BUILDER 2026-09-30: work-based unit sizing
+WATCHDOG_RESPLIT = bool(_P.get("watchdog_resplit", True))       # BUILDER 2026-09-30: reclaim -> split, not same shape
 MIN_YIELD    = float(_P["min_yield"])
 WARN_BLOCKED = float(_P["warn_blocked"])
 MAX_BLOCKED  = float(_P["max_blocked"])
 
 TIER_NUMBER = int(CFG["tier"]["number"])
 ENV_NAME    = CFG["tier"]["env_name"]
+FILE_PREFIX = str(CFG["artifacts"].get("file_prefix", ""))   # BUILDER 2026-09-30: per-area namespace
 AREA_NAME   = CFG["area"]["name"]
 CO_OK       = condition_values(CFG)
 WORKER_CONFIG = pipeline_config(CFG)
@@ -78,12 +87,15 @@ def done_units(host, targets):
     """-> (done_chunks, have_parts) where done means a whole file or a complete
     part set. have_parts maps cid -> {(i,n) present} so a resumed run re-dispatches
     only the MISSING parts and never re-pays for one already saved."""
-    r = host.artifacts(filename="_findings.parquet", limit=900)
+    r = host.artifacts(filename=f"{FILE_PREFIX}chunk_", limit=900)
     whole, parts = set(), {}
+    px = re.escape(FILE_PREFIX)
     for a in r["artifacts"]:
         fn = a["filename"]
-        mw = re.match(r"chunk_(\d+)_findings\.parquet$", fn)
-        mp = re.match(r"chunk_(\d+)_part(\d+)of(\d+)_findings\.parquet$", fn)
+        # ANCHORED at both ends with the area prefix: "chunk_000_findings.parquet" from another
+        # area in the same project must NOT satisfy "eds_chunk_000_findings.parquet".
+        mw = re.match(rf"{px}chunk_(\d+)_findings\.parquet$", fn)
+        mp = re.match(rf"{px}chunk_(\d+)_part(\d+)of(\d+)_findings\.parquet$", fn)
         if mw and int(mw.group(1)) in targets:
             whole.add(int(mw.group(1)))
         elif mp and int(mp.group(1)) in targets:
@@ -103,17 +115,54 @@ def archive_units(host, targets):
     doneness. A chunk whose findings are saved but whose archive is missing is DONE;
     re-extracting it would spend a full chunk of tokens to recover a storage artefact.
     -> (chunks_with_whole_archive, {cid: {(i,n) present}})"""
-    r = host.artifacts(filename="_fulltext.json.gz", limit=900)
+    r = host.artifacts(filename=f"{FILE_PREFIX}chunk_", limit=900)
     whole, parts = set(), {}
+    px = re.escape(FILE_PREFIX)
     for a in r["artifacts"]:
         fn = a["filename"]
-        mw = re.match(r"chunk_(\d+)_fulltext\.json\.gz$", fn)
-        mp = re.match(r"chunk_(\d+)_part(\d+)of(\d+)_fulltext\.json\.gz$", fn)
+        mw = re.match(rf"{px}chunk_(\d+)_fulltext\.json\.gz$", fn)
+        mp = re.match(rf"{px}chunk_(\d+)_part(\d+)of(\d+)_fulltext\.json\.gz$", fn)
         if mw and int(mw.group(1)) in targets:
             whole.add(int(mw.group(1)))
         elif mp and int(mp.group(1)) in targets:
             parts.setdefault(int(mp.group(1)), set()).add((int(mp.group(2)), int(mp.group(3))))
     return whole, parts
+
+
+def expected_fulltext(roster_df, cid):
+    """Papers in chunk `cid` likely to yield FULL TEXT: an explicit `fulltext_expected` column if
+    the roster has one, else pmcid present AND is_oa. Europe PMC OA flags undercount by ~30% on
+    the POTS build, so this is a floor, not a ceiling."""
+    # Accepts a pandas DataFrame OR a plain list of dict rows: the driver runs in the stdlib-only
+    # orchestration kernel, where the roster arrives as JSON (python pipeline/config.py is the
+    # same story). Column absence -> conservative: every paper may be full text.
+    if hasattr(roster_df, "columns"):
+        rows = roster_df[roster_df.chunk_id == cid].to_dict("records"); cols = set(roster_df.columns)
+    else:
+        rows = [r for r in roster_df if int(r.get("chunk_id", -1)) == int(cid)]
+        cols = set().union(*(r.keys() for r in rows)) if rows else set()
+    n = len(rows)
+    def _truthy(v):
+        return bool(v) and not (isinstance(v, float) and v != v)
+    if "fulltext_expected" in cols:
+        return sum(1 for r in rows if _truthy(r.get("fulltext_expected"))), n
+    if "pmcid" in cols and "is_oa" in cols:
+        return sum(1 for r in rows if r.get("pmcid") not in (None, "") and not (isinstance(r.get("pmcid"), float))
+                   and _truthy(r.get("is_oa"))), n
+    return n, n
+
+
+def plan_parts(roster_df, cid, n_parts_default=None, max_ft_per_unit=None):
+    """BUILDER 2026-09-30: size a chunk's work units by FULL-TEXT DENSITY, not by paper count.
+    Measured cause: the EDS dry run's chunk 0 (25/25 open-access papers) as ONE unit exceeded
+    WORKER_MAX_S=3000 s with nothing saved; POTS 25-paper parts were 29-62% abstract-only and
+    the pinned watchdog was calibrated on that composition. Returns (n_parts, n_ft, n_papers):
+    n_parts = max(n_parts_default, ceil(n_ft / max_ft_per_unit))."""
+    n_parts_default = N_PARTS_DEFAULT if n_parts_default is None else int(n_parts_default)
+    max_ft_per_unit = MAX_FT_PER_UNIT if max_ft_per_unit is None else int(max_ft_per_unit)
+    n_ft, n_papers = expected_fulltext(roster_df, cid)
+    need = -(-n_ft // max(1, max_ft_per_unit)) if n_ft else 1
+    return max(1, n_parts_default, need), n_ft, n_papers
 
 
 # ================================ worker task ====================================
@@ -141,8 +190,8 @@ for col in ["effect_size","study_quality"]:
         gdf[col]=gdf[col].apply(lambda x: json.dumps(x) if isinstance(x,(dict,list)) else x)
 if len(gdf):
     gdf["tier"] = __TIER__
-fn = ("chunk_%03d_findings.parquet" % CID) if not PART else \\
-     ("chunk_%03d_part%dof%d_findings.parquet" % (CID, PART[0], PART[1]))
+fn = ("__PREFIX__chunk_%03d_findings.parquet" % CID) if not PART else \\
+     ("__PREFIX__chunk_%03d_part%dof%d_findings.parquet" % (CID, PART[0], PART[1]))
 gdf.to_parquet(fn, index=False)
 n_expected = len(pmids)
 n_yield = int(gdf.pmid.nunique()) if len(gdf) else 0
@@ -182,6 +231,7 @@ print("ARCHIVE", json.dumps(ARCHIVE, default=str))
 def _fill_static(tmpl):
     """BUILDER: bind the config-derived constants into the worker template once."""
     return (tmpl.replace("__PIPE__", str(PIPE))
+                .replace("__PREFIX__", FILE_PREFIX)
                 .replace("__ROSTER__", str(ROSTER))
                 .replace("__TIER__", str(TIER_NUMBER))
                 .replace("__CO_OK__", json.dumps(CO_OK))
@@ -206,10 +256,10 @@ SCHEMA = {"type": "object", "properties": {
 
 def build_task(cid, part=None):
     code = CODE_TMPL.replace("__CID__", str(cid)).replace("__PART__", repr(part))
-    outfn = (f"chunk_{cid:03d}_findings.parquet" if not part
-             else f"chunk_{cid:03d}_part{part[0]}of{part[1]}_findings.parquet")
-    arcfn = (f"chunk_{cid:03d}_fulltext.json.gz" if not part
-             else f"chunk_{cid:03d}_part{part[0]}of{part[1]}_fulltext.json.gz")
+    outfn = (f"{FILE_PREFIX}chunk_{cid:03d}_findings.parquet" if not part
+             else f"{FILE_PREFIX}chunk_{cid:03d}_part{part[0]}of{part[1]}_findings.parquet")
+    arcfn = (f"{FILE_PREFIX}chunk_{cid:03d}_fulltext.json.gz" if not part
+             else f"{FILE_PREFIX}chunk_{cid:03d}_part{part[0]}of{part[1]}_fulltext.json.gz")
     part_note = ("" if not part else
         f" You are handling PART {part[0]+1} of {part[1]} of this chunk's papers "
         f"(the chunk is split because a full {PAPERS_PER_CHUNK}-paper pass exceeds the per-worker token ceiling).")
@@ -279,19 +329,37 @@ def gate(cid, so):
     return True, frac, enum_bad, "ok"
 
 
-def run(host, build_task, gate, targets, split_all=True, n_parts=N_PARTS_DEFAULT, log_prefix=""):
+def run(host, build_task, gate, targets, split_all=True, n_parts=N_PARTS_DEFAULT, log_prefix="",
+        roster_df=None, run_tag=None):
     """Dispatch `targets` as parts. Returns a computed report -- every count in it
-    comes from a variable, never a typed literal."""
+    comes from a variable, never a typed literal.
+
+    BUILDER 2026-09-30: when `roster_df` is given, each chunk's part count is plan_parts()
+    (full-text density), never below `n_parts`; a chunk whose plan is 1 part and split_all=False
+    runs whole. Without a roster the legacy behaviour is unchanged."""
     targets = set(targets)
+    # BUILDER 2026-09-30: per-run log filenames. Two runs in one working directory (EDS dry run:
+    # chunks 0-2, then chunk 0 re-sized) clobbered gate_log_parts.json; the first run's gate
+    # entries survived only in the cell's stdout.
+    run_tag = run_tag or time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+    _logfn = lambda stem: f"{FILE_PREFIX}{stem}_{run_tag}.json"
     done, have_parts = done_units(host, targets)
     # work unit = (cid, (i,n)) for parts, or (cid, None) for a whole attempt
     pending = []
+    unit_plan = {}
     for cid in sorted(targets - done):
-        if split_all:
+        np_ = n_parts
+        if roster_df is not None:
+            np_, n_ft, n_pap = plan_parts(roster_df, cid, n_parts_default=n_parts)
+            unit_plan[cid] = {"n_parts": np_, "expected_fulltext": n_ft, "papers": n_pap,
+                              "max_fulltext_per_unit": MAX_FT_PER_UNIT}
+            print(f"{log_prefix}[parts] chunk {cid}: {n_ft}/{n_pap} papers expected full text -> "
+                  f"{np_} part(s) (cap {MAX_FT_PER_UNIT} full texts per unit)", flush=True)
+        if split_all or np_ > 1:
             got = have_parts.get(cid, set())
-            for i in range(n_parts):
-                if (i, n_parts) not in got:
-                    pending.append((cid, (i, n_parts)))
+            for i in range(np_):
+                if (i, np_) not in got:
+                    pending.append((cid, (i, np_)))
         else:
             pending.append((cid, None))
 
@@ -335,7 +403,21 @@ def run(host, build_task, gate, targets, split_all=True, n_parts=N_PARTS_DEFAULT
                 print(f"{log_prefix}[parts] WATCHDOG reclaimed chunk {cid} part {part} "
                       f"(saved={saved})", flush=True)
                 if not saved:
-                    pending.append((cid, part))
+                    if WATCHDOG_RESPLIT:
+                        # BUILDER 2026-09-30: a unit that ran out of TIME is re-dispatched SMALLER,
+                        # exactly like a token-ceiling kill. Re-queuing the same shape re-queues
+                        # the same timeout (EDS chunk 0: 3 identical attempts, nothing saved).
+                        nxt = (part[1] * 2) if part else max(2, n_parts)
+                        got = have_parts.get(cid, set())
+                        ceiling_log.append({"chunk": cid, "part": part, "attempt": attempts.get((cid, part)),
+                                            "kind": "watchdog", "resplit_to": nxt})
+                        print(f"{log_prefix}[parts] chunk {cid} part {part} watchdog -> re-splitting "
+                              f"into {nxt} parts", flush=True)
+                        for i in range(nxt):
+                            if (i, nxt) not in got:
+                                pending.append((cid, (i, nxt)))
+                    else:
+                        pending.append((cid, part))
 
         for r in (res or []):
             if r.get("status") == "running":
@@ -400,12 +482,12 @@ def run(host, build_task, gate, targets, split_all=True, n_parts=N_PARTS_DEFAULT
                 print(f"{log_prefix}[parts] chunk {cid} part {part} FAILED: {reason}", flush=True)
 
         refill()
-        for fn, obj in (("gate_log_parts.json", gate_log), ("guard_violations_parts.json", guard_log),
-                        ("enum_violations_parts.json", enum_log), ("ceiling_log_parts.json", ceiling_log)):
+        for fn, obj in ((_logfn("gate_log_parts"), gate_log), (_logfn("guard_violations_parts"), guard_log),
+                        (_logfn("enum_violations_parts"), enum_log), (_logfn("ceiling_log_parts"), ceiling_log)):
             json.dump(obj, open(fn, "w"), indent=1)
         d3, _ = done_units(host, targets)
         aw, ap = archive_units(host, targets)
-        with open("progress_parts.txt", "a") as fp:
+        with open(f"{FILE_PREFIX}progress_parts_{run_tag}.txt", "a") as fp:
             fp.write(f"{len(d3 & targets)}/{len(targets)} chunks | units in-flight {len(inflight)} "
                      f"| pending {len(pending)} | +{finished} -{failed} "
                      f"| archives {len(aw) + len(ap)}\n")
@@ -415,7 +497,7 @@ def run(host, build_task, gate, targets, split_all=True, n_parts=N_PARTS_DEFAULT
 
     final_done, final_parts = done_units(host, targets)
     arc_whole, arc_parts = archive_units(host, targets)
-    return {"chunks_done": sorted(final_done & targets),
+    return {"run_tag": run_tag, "unit_plan": unit_plan, "chunks_done": sorted(final_done & targets),
             "chunks_missing": sorted(targets - final_done),
             "n_done": len(final_done & targets), "n_targets": len(targets),
             "gate_log": gate_log, "guard_violations": guard_log,

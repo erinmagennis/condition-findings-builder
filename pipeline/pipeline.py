@@ -45,6 +45,7 @@ PROMPT_TEXT=None     # or the rendered prompt embedded by the driver
 SUBTYPE_FIELD=None   # config: condition.subtype.field (was the literal "pots_subtype")
 TIER_NUMBER=None
 AREA_SLUG=None
+FILE_PREFIX=""       # config: artifacts.file_prefix ("<slug>_" for a new area; "" = legacy POTS names)
 UNESCAPE_SOURCE_TEXT=True
 RETAIN_SOURCE_TEXT=True
 _CONFIGURED=False
@@ -57,7 +58,7 @@ def configure(cfg):
     global MODEL, MAX_FT, MAX_ABS, FT_INPUT_CHAR_CAP, CHUNK_SIZE, CONCURRENCY
     global FETCH_ATTEMPTS, FETCH_PACING, MIN_FT_CHARS, CORPUS_VID, PROMPT_VID, PROMPT_TEXT
     global SUBTYPE_FIELD, TIER_NUMBER, AREA_SLUG, UNESCAPE_SOURCE_TEXT, RETAIN_SOURCE_TEXT
-    global FINDING_FIELDS, _CONFIGURED
+    global FINDING_FIELDS, _CONFIGURED, FILE_PREFIX
     if not isinstance(cfg.get("model_id"), str) or not cfg["model_id"].strip():
         raise ValueError("configure: model_id must be a literal model id string")
     if cfg.get("retain_source_text") is not True:
@@ -73,6 +74,7 @@ def configure(cfg):
     PROMPT_TEXT = cfg.get("_rendered_prompt") or PROMPT_TEXT
     SUBTYPE_FIELD = cfg.get("subtype_field") or "condition_subtype"
     TIER_NUMBER = cfg.get("tier_number"); AREA_SLUG = cfg.get("area_slug")
+    FILE_PREFIX = str(cfg.get("file_prefix") or "")
     UNESCAPE_SOURCE_TEXT = bool(cfg.get("unescape_source_text", True))
     RETAIN_SOURCE_TEXT = True
     FINDING_FIELDS = [SUBTYPE_FIELD if f == "__SUBTYPE_FIELD__" else f for f in _FINDING_FIELDS_TMPL]
@@ -82,13 +84,26 @@ def configure(cfg):
             "UNESCAPE_SOURCE_TEXT": UNESCAPE_SOURCE_TEXT}
 
 
+_TAGNAMES=('p','br','b','i','em','strong','sub','sup','span','div','a','table','thead','tbody','tr',
+ 'td','th','ul','ol','li','h1','h2','h3','h4','h5','h6','sec','title','abstract','article','front',
+ 'body','back','ref','xref','italic','bold','underline','graphic','fig','caption','label','list',
+ 'list-item','disp-quote','inline-formula','mml:math','tex-math','named-content','styled-content',
+ 'break','hr','img','pre','code','blockquote','dl','dt','dd','tfoot','colgroup','col','col-group')
+_TAG_RX=re.compile(r'</?(?:' + '|'.join(_TAGNAMES) + r')(?:\s[^<>]*?)?/?>', re.I)   # = quote_trace.TAG
+_INLINE_TAG_RX=re.compile(r'</?(?:b|i|em|strong|sub|sup|span|a|italic|bold|underline|named-content|styled-content|xref)(?:\s[^<>]*?)?/?>', re.I)  # = quote_trace.INLINE_TAG
+
 def unescape_source(t):
     """BUILDER: decode HTML entities BEFORE the model reads the text. Twice, because some
     Europe PMC records are double-escaped. Applied to the extraction input only when
     unescape_source_text is true; the retained archive stores the text AS HANDED TO THE
-    MODEL, so quote census and archive always agree on the same bytes."""
+    MODEL, so quote census and archive always agree on the same bytes.
+    2026-09-30 (EDS dry run): ALSO strip whitelisted inline HTML/JATS tags (<i>, <sub>, ...) to a
+    space. Europe PMC search-API abstracts carry them; full text parsed via itertext does not.
+    Measured on the dry-run screen: 4 of 75 verbatim spans failed only because of <i>...</i>."""
     if not t: return t
-    return html.unescape(html.unescape(str(t)))
+    s=html.unescape(html.unescape(str(t)))
+    s=_INLINE_TAG_RX.sub("",s)                    # inline formatting wraps a span: '' (PLOD1-related)
+    return re.sub(r"[ \t]{2,}"," ",_TAG_RX.sub(" ",s))   # block tags: space, never '' (diseaseThe)
 
 
 # ===== FIX 3b: retry with exponential backoff. Measured on chunk 222: rapid-fire
@@ -275,6 +290,7 @@ _FINDING_FIELDS_TMPL=["entity","entity_kind","gene_marker","direction","directio
  "relation_subject","relation_object","provenance_quote","provenance_section","null_or_failed_result",
  "contradicts_finding_ref","evidence_stratum","study_quality"]
 FINDING_FIELDS=list(_FINDING_FIELDS_TMPL)   # rebound by configure()
+ROSTER_PASSTHROUGH=["query_contamination","screen_final_verdict","screen_verdict_uncertain","sample_stratum"]
 PAPER_FIELDS=["study_type","n_participants","comparator","demographics","is_duplicate_or_preprint_note",
  "contradicts_or_extends","limitations_stated","future_direction"]
 
@@ -381,8 +397,8 @@ def build_retention(infos):
 def archive_name(chunk_id, part=None):
     """Part-aware, mirroring the findings filename so the driver's done-detector regexes
     stay legible: chunk_NNN_fulltext.json.gz / chunk_NNN_partIofN_fulltext.json.gz."""
-    return (f"chunk_{chunk_id:03d}_fulltext.json.gz" if not part
-            else f"chunk_{chunk_id:03d}_part{part[0]}of{part[1]}_fulltext.json.gz")
+    return (f"{FILE_PREFIX}chunk_{chunk_id:03d}_fulltext.json.gz" if not part
+            else f"{FILE_PREFIX}chunk_{chunk_id:03d}_part{part[0]}of{part[1]}_fulltext.json.gz")
 
 def save_fulltext_archive(retained, chunk_id, part=None, level=9):
     """Write the gzipped per-chunk archive. Returns a measured report dict — every
@@ -506,6 +522,12 @@ def process_chunk(host, chunk_df):
                 source_stream=row.source_stream,theme=row.theme,fulltext_status=info["fulltext_status"],
                 contact_note=info["contact_note"],fetch_note=info.get("fetch_note"),
                 chunk_id=int(row.chunk_id))
+            # BUILDER 2026-09-30: roster FLAG columns ride through to every finding row when the
+            # roster carries them (draw + screen stages); absent -> None. The POTS build added
+            # these only at cross-tier harmonization, so a single-tier package never had them.
+            for _fc in ROSTER_PASSTHROUGH:
+                fr[_fc]=(None if row.get(_fc) is None or (isinstance(row.get(_fc),float) and math.isnan(row.get(_fc)))
+                         else row.get(_fc))
             rows.append(fr)
     stats=dict(papers=len(infos),
         fulltext=sum(1 for i in infos if i["fulltext_status"]=="retrieved-fulltext"),
@@ -535,7 +557,7 @@ def save_chunk(host, save_artifacts_fn, rows, chunk_id):
     df=pd.DataFrame(rows)
     for col in ["effect_size","study_quality"]:
         if col in df: df[col]=df[col].apply(lambda x: json.dumps(x) if isinstance(x,(dict,list)) else x)
-    fn=f"chunk_{chunk_id:02d}_findings.parquet"; df.to_parquet(fn,index=False)
+    fn=f"{FILE_PREFIX}chunk_{chunk_id:02d}_findings.parquet"; df.to_parquet(fn,index=False)
     return fn, len(df)
 
 # ================= GROUNDING (step 7) — batched, cached, real-authority validation =================
