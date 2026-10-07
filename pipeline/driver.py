@@ -162,7 +162,13 @@ def plan_parts(roster_df, cid, n_parts_default=None, max_ft_per_unit=None):
     max_ft_per_unit = MAX_FT_PER_UNIT if max_ft_per_unit is None else int(max_ft_per_unit)
     n_ft, n_papers = expected_fulltext(roster_df, cid)
     need = -(-n_ft // max(1, max_ft_per_unit)) if n_ft else 1
-    return max(1, n_parts_default, need), n_ft, n_papers
+    # 2026-10-07: a chunk that lost most of its papers to screening (EDS Tier 1: 6-49 papers per
+    # 50-slot chunk after 569 exclusions) must not be split into MORE units than its papers need.
+    # The default part count exists to keep a unit at <= papers_per_chunk/n_parts_default papers;
+    # never exceed ceil(n_papers / that unit size), and never below 1.
+    unit_cap = max(1, -(-PAPERS_PER_CHUNK // max(1, n_parts_default)))
+    by_count = max(1, -(-n_papers // unit_cap)) if n_papers else 1
+    return max(1, min(n_parts_default, by_count), need), n_ft, n_papers
 
 
 # ================================ worker task ====================================

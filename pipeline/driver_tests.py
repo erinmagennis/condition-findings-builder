@@ -209,10 +209,24 @@ def test_work_based_sizing(D):
                        "25 expected full texts / cap 12 -> 3 parts even though n_parts_default=1"))
     cases.append(_case("half_fulltext_chunk_splits_to_2", D.plan_parts(ro, 1, n_parts_default=1, max_ft_per_unit=12)[0], 2))
     cases.append(_case("abstract_only_chunk_stays_whole", D.plan_parts(ro, 2, n_parts_default=1, max_ft_per_unit=12)[0], 1))
-    cases.append(_case("default_parts_is_a_floor", D.plan_parts(ro, 2, n_parts_default=2, max_ft_per_unit=12)[0], 2,
-                       "the pinned n_parts_default is never lowered by the density rule"))
+    full50 = pd.DataFrame({"chunk_id": [9]*50, "pmcid": [None]*50, "is_oa": [False]*50, "pmid": [str(i) for i in range(50)]})
+    prev_ppc = D.PAPERS_PER_CHUNK; D.PAPERS_PER_CHUNK = 50
+    try:
+        cases.append(_case("default_parts_holds_for_a_full_chunk", D.plan_parts(full50, 9, n_parts_default=2, max_ft_per_unit=12)[0], 2,
+                           "a full 50-paper abstract-only chunk keeps the pinned 2 parts (unit <= 25 papers)"))
+    finally:
+        D.PAPERS_PER_CHUNK = prev_ppc
     ro2 = ro.assign(fulltext_expected=[True]*5 + [False]*70)
     cases.append(_case("explicit_fulltext_expected_column_wins", D.plan_parts(ro2, 0, 1, 12)[0], 1))
+    small = pd.DataFrame({"chunk_id": [7]*6, "pmcid": [None]*6, "is_oa": [False]*6, "pmid": [str(i) for i in range(6)]})
+    prev_ppc = D.PAPERS_PER_CHUNK; D.PAPERS_PER_CHUNK = 50
+    try:
+        cases.append(_case("screened_down_chunk_runs_as_one_unit", D.plan_parts(small, 7, n_parts_default=2, max_ft_per_unit=12)[0], 1,
+                           "6 papers must not become 2 units; the default is a ceiling on unit size, not a floor on part count"))
+        small_ft = small.assign(pmcid="PMC1", is_oa=True)
+        cases.append(_case("small_chunk_still_splits_on_fulltext_density", D.plan_parts(small_ft, 7, n_parts_default=2, max_ft_per_unit=3)[0], 2))
+    finally:
+        D.PAPERS_PER_CHUNK = prev_ppc
     ro3 = ro.drop(columns=["pmcid", "is_oa"])
     cases.append(_case("unknown_flags_assume_all_fulltext", D.plan_parts(ro3, 2, 1, 12)[0], 3,
                        "no flags -> every paper may be full text -> conservative split"))

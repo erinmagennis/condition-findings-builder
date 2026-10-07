@@ -278,7 +278,7 @@ tier:
 artifacts:
   file_prefix: eds_
   # roster_vid = eds_tier1_roster.parquet as saved 2026-10-07 (frozen Tier-1 roster; shared papers excluded).
-  roster_vid: "3df07eb6-2398-4bb8-8912-84ac7f6aa826"     # eds_tier1_roster_v2.parquet (1,463 papers, 30 chunks; v1 + 223 POTS no-yield papers)
+  roster_vid: 05a75a13-28c5-4bec-9067-a8f6d2e93a3d  # roster v3 (2026-10-07): v2 minus 569 screen-excluded minus 128 title-only; 766 papers / 30 chunks (6-47)     # eds_tier1_roster_v2.parquet (1,463 papers, 30 chunks; v1 + 223 POTS no-yield papers)
   # pipeline_vid / prompt_vid unchanged from the dry run: pipeline/pipeline.py and prompt_template.txt were NOT edited.
   pipeline_vid: "afa47b13-ae5b-474d-926a-19918ba8b527"   # eds_pipeline.py = pipeline/pipeline.py as patched 2026-09-30
   prompt_vid: "a8fd46b7-07e6-4938-b495-37f919565bc7"     # eds_prompt_rendered.txt (dry run; template unchanged)
