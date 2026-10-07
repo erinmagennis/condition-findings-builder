@@ -272,13 +272,13 @@ tier:
   label: "Tier 1 — EDS/HSD core literature 2019-2026 (papers not already extracted in pots-findings)"
   # EXPLICIT list of every chunk id in eds_tier1_roster.parquet (frozen 2026-10-07; order = theme block,
   # then pmid asc; the last chunk is partial and is assigned to Tier 1 — see ROSTER_REPORT.md).
-  target_chunks: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+  target_chunks: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
   env_name: python
 
 artifacts:
   file_prefix: eds_
   # roster_vid = eds_tier1_roster.parquet as saved 2026-10-07 (frozen Tier-1 roster; shared papers excluded).
-  roster_vid: "1481056e-a5ed-44fb-ae9c-76acd17bddfb"
+  roster_vid: "3df07eb6-2398-4bb8-8912-84ac7f6aa826"     # eds_tier1_roster_v2.parquet (1,463 papers, 30 chunks; v1 + 223 POTS no-yield papers)
   # pipeline_vid / prompt_vid unchanged from the dry run: pipeline/pipeline.py and prompt_template.txt were NOT edited.
   pipeline_vid: "afa47b13-ae5b-474d-926a-19918ba8b527"   # eds_pipeline.py = pipeline/pipeline.py as patched 2026-09-30
   prompt_vid: "a8fd46b7-07e6-4938-b495-37f919565bc7"     # eds_prompt_rendered.txt (dry run; template unchanged)
