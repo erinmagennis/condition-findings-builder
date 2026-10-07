@@ -45,6 +45,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import load_config, render_prompt, pipeline_config, condition_values  # noqa: E402
 
 CFG = load_config(os.environ.get("CORPUS_CONFIG"), warn=lambda m: print(m, file=sys.stderr))
+BUILD_AFTER = CFG["artifacts"].get("build_after")   # ISO cutoff: older same-prefix chunk files are NOT this build's
 PIPE   = CFG["artifacts"].get("pipeline_vid")   # pipeline.py artifact id the workers exec
 ROSTER = CFG["artifacts"].get("roster_vid")     # roster parquet artifact id
 TARGET_CHUNKS = list(CFG["tier"]["target_chunks"])   # EXPLICIT list from config, never range(N)
@@ -87,7 +88,7 @@ def done_units(host, targets):
     """-> (done_chunks, have_parts) where done means a whole file or a complete
     part set. have_parts maps cid -> {(i,n) present} so a resumed run re-dispatches
     only the MISSING parts and never re-pays for one already saved."""
-    r = host.artifacts(filename=f"{FILE_PREFIX}chunk_", limit=900)
+    r = host.artifacts(filename=f"{FILE_PREFIX}chunk_", limit=900, **({"after": BUILD_AFTER} if BUILD_AFTER else {}))
     whole, parts = set(), {}
     px = re.escape(FILE_PREFIX)
     for a in r["artifacts"]:
@@ -115,7 +116,7 @@ def archive_units(host, targets):
     doneness. A chunk whose findings are saved but whose archive is missing is DONE;
     re-extracting it would spend a full chunk of tokens to recover a storage artefact.
     -> (chunks_with_whole_archive, {cid: {(i,n) present}})"""
-    r = host.artifacts(filename=f"{FILE_PREFIX}chunk_", limit=900)
+    r = host.artifacts(filename=f"{FILE_PREFIX}chunk_", limit=900, **({"after": BUILD_AFTER} if BUILD_AFTER else {}))
     whole, parts = set(), {}
     px = re.escape(FILE_PREFIX)
     for a in r["artifacts"]:
@@ -469,6 +470,11 @@ def run(host, build_task, gate, targets, split_all=True, n_parts=N_PARTS_DEFAULT
                              "yield": frac, "findings": st.get("n_findings"),
                              "blocked_frac": st.get("blocked_frac"),
                              "guard_violations": gv, "attempt": attempts.get(key),
+                             # 2026-10-07: measured spend + realised full-text count per unit, so the
+                             # wave controller's budget gate reads the worker's own numbers.
+                             "tokens_out": st.get("total_out_tokens"),
+                             "retained_fulltext": st.get("retained_fulltext_papers"),
+                             "n_expected": st.get("n_expected"),
                              "archive_file": arc.get("file"),
                              "archive_gz_bytes": arc.get("gz_bytes"),
                              "archive_gz_mb": arc.get("gz_mb"),    # decimal MB (1e6 B)

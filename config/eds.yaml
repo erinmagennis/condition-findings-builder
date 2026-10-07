@@ -277,6 +277,9 @@ tier:
 
 artifacts:
   file_prefix: eds_
+  # Full build started 2026-10-07 ~09:50Z. The dry run (2026-09-30, 75-paper roster) saved eds_chunk_000_part*of3_*
+  # under the same prefix; the pilot's done-detection took them for the full build's chunk 0 and skipped it.
+  build_after: "2026-10-07T09:00:00Z"
   # roster_vid = eds_tier1_roster.parquet as saved 2026-10-07 (frozen Tier-1 roster; shared papers excluded).
   roster_vid: 05a75a13-28c5-4bec-9067-a8f6d2e93a3d  # roster v3 (2026-10-07): v2 minus 569 screen-excluded minus 128 title-only; 766 papers / 30 chunks (6-47)     # eds_tier1_roster_v2.parquet (1,463 papers, 30 chunks; v1 + 223 POTS no-yield papers)
   # pipeline_vid / prompt_vid unchanged from the dry run: pipeline/pipeline.py and prompt_template.txt were NOT edited.

@@ -26,12 +26,16 @@ def load(path=os.path.join(HERE, "driver.py"), name="driver"):
 
 class FakeHost:
     """Minimal host stub: only artifacts(filename=...) is exercised by done_units."""
-    def __init__(self, filenames):
+    def __init__(self, filenames, created=None):
         self.filenames = list(filenames)
+        self.created = created or {}      # filename -> ISO created_at (optional)
         self.calls = []
-    def artifacts(self, filename=None, limit=None, **kw):
-        self.calls.append(filename)
+        self.after_seen = []
+    def artifacts(self, filename=None, limit=None, after=None, **kw):
+        self.calls.append(filename); self.after_seen.append(after)
         hits = [f for f in self.filenames if filename is None or filename in f]
+        if after is not None:   # the real store filters on created_at > after
+            hits = [f for f in hits if self.created.get(f, "9999") > str(after)]
         return {"count": len(hits), "artifacts": [{"filename": f} for f in hits]}
 
 
@@ -102,6 +106,32 @@ def test_ceiling_not_a_budget_failure(D):
     cases.append(_case("ceiling_branch_continues_before_failure_accounting",
                        cont_at < fail_at, True,
                        "a ceiling kill can never increment the fail counter"))
+    return cases
+
+
+def test_build_after_cutoff(D):
+    """2026-10-07 pilot defect: dry-run chunk files (same prefix, same chunk id, different roster)
+    satisfied done-detection and the full-build chunk 0 was skipped. With artifacts.build_after set,
+    files created before the cutoff are invisible."""
+    cases = []
+    px = D.FILE_PREFIX
+    files = [f"{px}chunk_000_part{i}of3_findings.parquet" for i in range(3)] + [f"{px}chunk_008_part{i}of2_findings.parquet" for i in range(2)]
+    created = {f: "2026-09-30T12:00:00Z" for f in files if "chunk_000" in f}
+    created.update({f: "2026-10-07T10:00:00Z" for f in files if "chunk_008" in f})
+    prev = D.BUILD_AFTER
+    try:
+        D.BUILD_AFTER = None
+        d, _ = D.done_units(FakeHost(files, created), {0, 8})
+        cases.append(_case("no_cutoff_sees_stale_dry_run_files", sorted(d), [0, 8], "documents the defect shape"))
+        D.BUILD_AFTER = "2026-10-07T09:00:00Z"
+        h = FakeHost(files, created)
+        d, _ = D.done_units(h, {0, 8})
+        cases.append(_case("cutoff_hides_dry_run_chunk0", sorted(d), [8]))
+        cases.append(_case("cutoff_is_forwarded_to_the_store", h.after_seen[-1], "2026-10-07T09:00:00Z"))
+        aw, ap = D.archive_units(FakeHost([f.replace("_findings.parquet", "_fulltext.json.gz") for f in files], {k.replace("_findings.parquet", "_fulltext.json.gz"): v for k, v in created.items()}), {0, 8})
+        cases.append(_case("archive_census_respects_cutoff", sorted(ap), [8]))
+    finally:
+        D.BUILD_AFTER = prev
     return cases
 
 
@@ -302,6 +332,7 @@ def run_all(path=os.path.join(HERE, "driver.py")):
             "is_ceiling": test_is_ceiling(D),
             "ceiling_not_budget_failure": test_ceiling_not_a_budget_failure(D),
             "done_units": test_done_units(D),
+            "build_after_cutoff": test_build_after_cutoff(D),
             "archive_never_gates": test_archive_never_gates(D),
             "task_ordering": test_task_ordering(D),
         }

@@ -185,6 +185,9 @@ def validate(cfg, warn=print):
     # POTS build). Default "<slug>_"; the POTS config sets "" to keep its legacy filenames.
     if "file_prefix" not in cfg["artifacts"] or cfg["artifacts"]["file_prefix"] is None:
         cfg["artifacts"]["file_prefix"] = f"{cfg['area']['slug']}_"
+    ba = cfg["artifacts"].get("build_after")
+    if ba is not None and not re.match(r"^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2})?Z?)?$", str(ba)):
+        raise ConfigError("artifacts.build_after must be an ISO date or datetime (e.g. 2026-10-07T09:00:00Z)")
     fp = str(cfg["artifacts"]["file_prefix"])
     if fp and not re.fullmatch(r"[a-z0-9_]+_", fp):
         raise ConfigError("artifacts.file_prefix must be lowercase [a-z0-9_] and end with '_' (or be empty)")
@@ -312,6 +315,10 @@ def pipeline_config(cfg):
         "prompt_vid": cfg["artifacts"].get("prompt_vid"),
         "area_slug": cfg["area"]["slug"],
         "file_prefix": cfg["artifacts"]["file_prefix"],
+        # 2026-10-07: ISO timestamp; chunk artifacts created BEFORE it are invisible to done/archive
+        # detection. The EDS pilot marked chunk 0 "done" from the DRY RUN's eds_chunk_000_part*of3
+        # files (2026-09-30, a 75-paper roster) and never extracted the full-build chunk 0.
+        "build_after": cfg["artifacts"].get("build_after"),
     }
 
 
