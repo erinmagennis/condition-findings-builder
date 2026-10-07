@@ -41,6 +41,10 @@
      "myopathic EDS (mEDS; COL12A1)",
      "periodontal EDS (pEDS; C1R",
      "C1S)",
+     "unclassified or novel molecularly defined EDS variants (e.g. AEBP1",
+     "THBS2 reports)",
+     "historical Villefranche and Berlin nosology (EDS types I-XI",
+     "EDS-HT)",
      "EDS of unspecified or mixed type"
     ]
    },
@@ -49,7 +53,9 @@
     "members": [
      "generalized joint hypermobility (GJH) by Beighton score",
      "joint laxity assessed as a trait in a clinical cohort",
-     "hypermobility in athletes/dancers when studied as a health outcome"
+     "hypermobility in athletes/dancers when studied as a health outcome",
+     "hEDS/HSD diagnostic criteria",
+     "nosology and classification debates"
     ]
    },
    {
@@ -59,13 +65,41 @@
      "mast cell activation in EDS or HSD",
      "gastrointestinal dysmotility in EDS/HSD",
      "chronic pain/fatigue/proprioception in EDS/HSD",
-     "psychiatric and neurodevelopmental comorbidity in EDS/HSD",
-     "pelvic floor/obstetric outcomes",
+     "migraine and headache in EDS/HSD",
+     "psychiatric and neurodevelopmental comorbidity (anxiety",
+     "neurodivergence) in EDS/HSD",
+     "pelvic floor/obstetric and pregnancy outcomes",
      "craniocervical instability",
      "tethered cord",
      "Chiari in EDS/HSD",
+     "dental/periodontal",
+     "ocular and vascular events in EDS/HSD",
+     "anaesthesia and surgery outcomes IN EDS/HSD patients",
      "connective-tissue biomarkers/collagen/extracellular matrix in EDS",
-     "genetics and variant interpretation in EDS"
+     "fibroblast",
+     "skin and dermal-ultrastructure studies",
+     "tenascin-X",
+     "genetics and variant interpretation / genotype-phenotype in EDS",
+     "animal models of EDS genes (veterinary dermatosparaxis when framed as a model of human EDS)",
+     "epidemiology",
+     "natural history",
+     "registries",
+     "diagnostic delay",
+     "quality of life",
+     "patient-reported outcomes",
+     "physiotherapy/rehabilitation in EDS/HSD"
+    ]
+   },
+   {
+    "name": "differential-diagnosis neighbours studied comparatively with EDS or hypermobility",
+    "members": [
+     "Marfan syndrome",
+     "Loeys-Dietz syndrome",
+     "osteogenesis imperfecta",
+     "cutis laxa",
+     "Stickler syndrome",
+     "pseudoxanthoma elasticum and other heritable connective-tissue disorders WHEN EDS or hypermobility is studied",
+     "compared or discussed (a paper solely about one of them with no EDS/hypermobility content is `general` and off topic); POTS or other cohorts reporting hEDS/HSD prevalence (cross-mention data is used)"
     ]
    }
   ]
@@ -80,7 +114,8 @@
     "Emery-Dreifuss muscular dystrophy (usually EDMD)",
     "extended dosing schedule",
     "electronic data systems",
-    "Epworth daytime sleepiness scale contexts"
+    "Epworth daytime sleepiness scale contexts",
+    "ectodermal dysplasia"
    ]
   },
   {
@@ -88,9 +123,12 @@
    "corpus_sense": "hypermobility spectrum disorder",
    "offtopic_senses": [
     "Tukey honestly significant difference (statistics)",
-    "hydroxysteroid dehydrogenase",
+    "hydroxysteroid dehydrogenase (11beta-HSD / 17beta-HSD)",
     "high-sugar diet",
-    "hereditary spastic diplegia"
+    "hereditary spastic diplegia",
+    "honey-sweetened drink",
+    "hospital standardized data",
+    "high-speed data"
    ]
   },
   {
@@ -104,7 +142,9 @@
    "term": "JHS",
    "corpus_sense": "joint hypermobility syndrome",
    "offtopic_senses": [
-    "Johanson-Blizzard or other syndromes abbreviated JHS in a non-hypermobility context"
+    "Johanson-Blizzard or other syndromes abbreviated JHS in a non-hypermobility context",
+    "Japanese Hypertension Society",
+    "junior high school"
    ]
   },
   {
@@ -119,9 +159,10 @@
   },
   {
    "term": "HEDS",
-   "corpus_sense": "(case variant of hEDS; not a corpus query term)",
+   "corpus_sense": "(case variant of hEDS; not a corpus query term — but Europe PMC matches TITLE:hEDS case-insensitively)",
    "offtopic_senses": [
-    "HCC Early Detection Strategy study (hepatocellular carcinoma) — found by the dry-run screen"
+    "HCC Early Detection Strategy study (hepatocellular carcinoma) — found by the dry-run screen",
+    "bis(2-hydroxyethyl) disulfide / hydroxyethyl disulfide (glutaredoxin substrate chemistry) — found in the 2026-10-07 draw"
    ]
   },
   {
@@ -129,6 +170,27 @@
    "corpus_sense": "vascular / classical / kyphoscoliotic EDS",
    "offtopic_senses": [
     "none known"
+   ]
+  },
+  {
+   "term": "POTS",
+   "corpus_sense": "postural orthostatic tachycardia syndrome (as a comorbidity in EDS/HSD)",
+   "offtopic_senses": [
+    "any sense other than postural orthostatic tachycardia syndrome"
+   ]
+  },
+  {
+   "term": "MCAS",
+   "corpus_sense": "mast cell activation syndrome (as a comorbidity in EDS/HSD)",
+   "offtopic_senses": [
+    "any sense other than mast cell activation syndrome"
+   ]
+  },
+  {
+   "term": "TNX/TNXB",
+   "corpus_sense": "tenascin-X (classical-like EDS gene; in scope)",
+   "offtopic_senses": [
+    "tenascin-C papers without an EDS or hypermobility context"
    ]
   }
  ],
@@ -206,7 +268,7 @@
  },
  "scope": {
   "text": "",
-  "topical_drift": "orthopaedic and sports-medicine single-joint laxity/instability papers (shoulder, patellar, ankle, TMJ) with no hypermobility-as-condition question; dental/periodontal papers that mention EDS only in a differential list; materials-science papers using EDS for spectroscopy; sleep-medicine papers using EDS for excessive daytime sleepiness"
+  "topical_drift": "orthopaedic and sports-medicine single-joint laxity/instability papers (shoulder, patellar, ankle, TMJ) and procedural papers where joint laxity is only a surgical or technical variable (ACL reconstruction technique, shoulder instability repair method, clubfoot Ponseti casting, hallux valgus) with no hypermobility-as-condition, connective-tissue or biomarker question; rare multi-system syndromes where \"joint hypermobility\" is one incidental phenotype item in a long list and the paper's question is unrelated to connective tissue (unless the syndrome is itself an EDS type or an EDS differential studied comparatively); pure animal-husbandry reports of veterinary EDS not framed as a model of human disease; dental/periodontal papers that mention EDS only in a differential list; materials-science papers using EDS for spectroscopy; sleep-medicine papers using EDS for excessive daytime sleepiness"
  },
  "year_range": {
   "start": 2019,
@@ -226,7 +288,10 @@
    "Emery[- ]Dreifuss",
    "Tukey|honestly significant",
    "hydroxysteroid dehydrogenase|\\b\\d+β?-HSD\\b|HSD\\d",
-   "breast[- ]conserving|Budd[- ]Chiari"
+   "breast[- ]conserving|Budd[- ]Chiari",
+   "hydroxyethyl.{0,3}disulfide|glutaredoxin|HCC early detection",
+   "ectodermal dysplasia",
+   "Japanese Hypertension Society|junior high school"
   ]
  },
  "model": {
@@ -236,11 +301,11 @@
   "max_tokens_screen": 2000
  },
  "pinned": {
-  "papers_per_chunk": 25,
+  "papers_per_chunk": 50,
   "fetch_pacing_s": 0.9,
   "fetch_attempts": 6,
   "n_inflight": 3,
-  "n_parts_default": 1,
+  "n_parts_default": 2,
   "max_attempts": 3,
   "worker_max_s": 3000,
   "collect_slice_s": 120,
@@ -257,19 +322,41 @@
  "unescape_source_text": true,
  "tier": {
   "number": 1,
-  "label": "Dry run — EDS/HSD seed literature, 2019-2026, Europe PMC (NOT a release)",
+  "label": "Tier 1 — EDS/HSD core literature 2019-2026 (papers not already extracted in pots-findings)",
   "target_chunks": [
    0,
    1,
-   2
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15,
+   16,
+   17,
+   18,
+   19,
+   20,
+   21,
+   22,
+   23,
+   24
   ],
   "env_name": "python"
  },
  "artifacts": {
-  "roster_vid": "71af5c4b-29f3-400e-b943-b50f16425750",
+  "file_prefix": "eds_",
+  "roster_vid": "1481056e-a5ed-44fb-ae9c-76acd17bddfb",
   "pipeline_vid": "afa47b13-ae5b-474d-926a-19918ba8b527",
-  "prompt_vid": "a8fd46b7-07e6-4938-b495-37f919565bc7",
-  "file_prefix": "eds_"
+  "prompt_vid": "a8fd46b7-07e6-4938-b495-37f919565bc7"
  },
  "package": {
   "author": "Magennis, Erin",
@@ -279,7 +366,7 @@
   "license_data": "CC-BY-4.0",
   "doi_concept": "10.5281/zenodo.PLACEHOLDER",
   "doi_version": "10.5281/zenodo.PLACEHOLDER",
-  "repository": "https://github.com/PLACEHOLDER/DRYRUN-eds-findings-test"
+  "repository": "https://github.com/PLACEHOLDER/eds-findings"
  },
  "_exported_from": "eds.yaml"
 }

@@ -181,6 +181,38 @@ artifacts:
   pipeline_vid: ""
   prompt_vid: ""
 
+# CROSS-CORPUS PAPER REGISTRY (REGISTRY.md; pipeline/registry.py). A paper already EXTRACTED
+# in a sibling corpus is REFERENCED by this corpus, never re-extracted: the sibling's rows are
+# read through the additive `paper_condition_membership` table under THIS corpus's enum. The
+# EDS/HSD draw found 1,718 of 8,455 universe papers already in pots-findings; without a
+# registry they would have been extracted twice under two enums and two prompt generations
+# and silently pooled by pmid (DRYRUN_EDS_REPORT.md §3.7). Every value the registry records
+# about a sibling (tier, prompt file, pipeline file, prompt sha256, chunk ids) is READ from
+# that sibling's shipped MANIFEST.json and code/ listing — never typed here.
+registry:
+  # Name of THIS corpus as it appears in the registry's `corpus` column, and its version.
+  corpus: example-findings
+  corpus_version: v0
+  # Sibling corpora whose shipped data this corpus references. Both artifact-store version
+  # ids are required: `registry_vid` = the sibling's own paper_registry parquet (or the
+  # registry built OVER it), `repo_vid` = the READ-ONLY data-repository tarball the registry
+  # was built from (the five package dirs with MANIFEST.json / code/ / data/). Leave the
+  # list empty for a first corpus in an area.
+  siblings:
+    - corpus: example-sibling-findings
+      corpus_version: v1.1
+      registry_vid: "00000000-0000-0000-0000-000000000000"
+      repo_vid: "00000000-0000-0000-0000-000000000000"
+  # Documented exceptions to the one-extraction-per-pmid-per-generation invariant and to the
+  # never-re-extract policy. EVERY entry needs pmid, the generation under which the second
+  # extraction happened, and a written reason (registry_config() rejects an entry without
+  # one). An empty list is the normal state. check_registry() reports a violation for any
+  # double extraction NOT listed here; it never repairs the registry.
+  exceptions: []
+  #  - pmid: "12345678"
+  #    pipeline_generation: tier4
+  #    reason: "re-extracted deliberately as the fidelity-calibration anchor; see FIDELITY.md"
+
 package:
   author: "Surname, Given"
   orcid: "0000-0000-0000-0000"
