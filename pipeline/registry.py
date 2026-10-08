@@ -220,7 +220,9 @@ def build_registry(package_dirs, chunk_order, universe, this_corpus, sibling_cor
 # ----------------------------------------------------------------------------------------------
 
 def _joinkeys(df, cols):
-    """'a|b|c' per row; robust to an empty frame (DataFrame.agg(axis=1) returns a frame when empty)."""
+    """'a|b|c' per row. Replaced `df[cols].astype(str).agg("|".join, axis=1)` after it raised on the
+    12-row test fixture (mixed object/int key columns; the agg path is not reliable for row-wise string
+    joins), not because of an empty frame. itertuples is dtype-agnostic and also handles the empty case."""
     return sorted({"|".join(str(v) for v in row) for row in df[cols].itertuples(index=False)})
 
 
