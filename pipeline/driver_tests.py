@@ -7,7 +7,7 @@ two ~2M-token attempts) so a future edit that reintroduces the defect fails loud
 
 Every case returns a computed pass/fail; nothing is asserted by narration.
 """
-import json, re, importlib.util, sys, os
+import json, time, re, importlib.util, sys, os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 # BUILDER: the driver reads its constants from $CORPUS_CONFIG. The tests run against the
@@ -132,6 +132,90 @@ def test_build_after_cutoff(D):
         cases.append(_case("archive_census_respects_cutoff", sorted(ap), [8]))
     finally:
         D.BUILD_AFTER = prev
+    return cases
+
+
+def test_store_retry(D):
+    """Transient store failures are retried, persistent ones re-raised."""
+    cases = []
+    class Flaky(FakeHost):
+        def __init__(self, files, fail_n):
+            super().__init__(files); self.fail_n = fail_n; self.n = 0
+        def artifacts(self, **kw):
+            self.n += 1
+            if self.n <= self.fail_n: raise RuntimeError("host_call 'list_artifacts' failed: Failed query")
+            return super().artifacts(**kw)
+    prev = (D.STORE_RETRIES, D.STORE_RETRY_PAUSE_S); D.STORE_RETRIES, D.STORE_RETRY_PAUSE_S = 3, 0
+    try:
+        h = Flaky([f"{D.FILE_PREFIX}chunk_004_findings.parquet"], 2)
+        done, _ = D.done_units(h, {4})
+        cases.append(_case("two_failures_then_success", (sorted(done), h.n), ([4], 3)))
+        try:
+            D.done_units(Flaky([], 5), {4}); cases.append(_case("persistent_failure_reraises", "no raise", "raise"))
+        except RuntimeError:
+            cases.append(_case("persistent_failure_reraises", "raise", "raise"))
+    finally:
+        D.STORE_RETRIES, D.STORE_RETRY_PAUSE_S = prev
+    return cases
+
+
+def test_dispatch_deadline(D):
+    """2026-10-08: with the deadline already passed, run() must dispatch NOTHING, return at once,
+    and list every planned unit as deferred; with no deadline the same stub dispatches."""
+    cases = []
+    class DelegHost(FakeHost):
+        def __init__(self): super().__init__([]); self.dispatched = []
+        def delegate(self, req, wait=False):
+            self.dispatched.append(req["name"]); return {"frame_id": f"f{len(self.dispatched)}", "status": "running"}
+        def collect(self, fids, timeout=0):
+            # every dispatched unit "completes" with a saved findings file and clean stats
+            out = []
+            for fid in fids:
+                name = self.dispatched[int(fid[1:]) - 1]
+                self.filenames.append(f"{D.FILE_PREFIX}chunk_{int(name[1:name.index('p')]):03d}_part{name[name.index('p')+1:]}of1_findings.parquet")
+                out.append({"frame_id": fid, "status": "completed", "structured_output": {"chunk_id": 0, "version_id": "v",
+                            "stats": {"yield_frac": 1.0, "n_findings": 5, "n_expected": 5, "blocked_frac": 0.0, "guard_violations": 0, "enum_violations": {}}}})
+            return out
+    prev = D.COLLECT_SLICE; D.COLLECT_SLICE = 0
+    try:
+        h = DelegHost()
+        rep = D.run(h, lambda cid, part=None: "task", lambda cid, so: (True, 1.0, {}, "ok"), [21, 22], split_all=True, n_parts=1,
+                    run_tag="t_deadline", dispatch_deadline=time.time() - 1)
+        cases.append(_case("deadline_passed_dispatches_nothing", len(h.dispatched), 0))
+        cases.append(_case("deadline_passed_defers_every_unit", sorted(u["chunk"] for u in rep["deferred_units"]), [21, 22]))
+        h2 = DelegHost()
+        rep2 = D.run(h2, lambda cid, part=None: "task", lambda cid, so: (True, 1.0, {}, "ok"), [21, 22], split_all=True, n_parts=1,
+                     run_tag="t_nodeadline", dispatch_deadline=None)
+        cases.append(_case("no_deadline_dispatches_all", (len(h2.dispatched), rep2["deferred_units"]), (2, [])))
+    finally:
+        D.COLLECT_SLICE = prev
+    return cases
+
+
+def test_stall_breaker(D):
+    """2026-10-08 wave-2 shape: every in-flight unit stalls. run() must stop them, NOT re-split or
+    re-dispatch, and return stalled=True with the units deferred."""
+    cases = []
+    clock = {"t": 1_000_000.0}
+    class StallHost(FakeHost):
+        def __init__(self): super().__init__([]); self.dispatched = []; self.stopped = []
+        def delegate(self, req, wait=False):
+            self.dispatched.append(req["name"]); return {"frame_id": f"f{len(self.dispatched)}", "status": "running"}
+        def collect(self, fids, timeout=0):
+            clock["t"] += 400; return [{"frame_id": f, "status": "running"} for f in fids]   # nobody ever finishes
+        def stop_child(self, fid, reason=""): self.stopped.append(fid)
+    real_time = D.time.time; prev = (D.COLLECT_SLICE, D.STALL_MIN_S)
+    D.time.time = lambda: clock["t"]; D.COLLECT_SLICE = 0; D.STALL_MIN_S = 1500
+    try:
+        h = StallHost()
+        rep = D.run(h, lambda cid, part=None: "task", lambda cid, so: (True, 1.0, {}, "ok"), [21, 22, 23, 24], split_all=True, n_parts=1, run_tag="t_stall")
+        cases.append(_case("stall_detected", rep["stalled"], True))
+        cases.append(_case("inflight_workers_stopped", len(h.stopped), min(D.N_INFLIGHT, 4)))
+        cases.append(_case("no_redispatch_into_stall", len(h.dispatched), min(D.N_INFLIGHT, 4)))
+        cases.append(_case("all_units_deferred", sorted(u["chunk"] for u in rep["deferred_units"]), [21, 22, 23, 24]))
+        cases.append(_case("no_ceiling_resplit", rep["ceiling_events"], []))
+    finally:
+        D.time.time = real_time; D.COLLECT_SLICE, D.STALL_MIN_S = prev
     return cases
 
 
@@ -333,6 +417,9 @@ def run_all(path=os.path.join(HERE, "driver.py")):
             "ceiling_not_budget_failure": test_ceiling_not_a_budget_failure(D),
             "done_units": test_done_units(D),
             "build_after_cutoff": test_build_after_cutoff(D),
+            "store_retry": test_store_retry(D),
+            "dispatch_deadline": test_dispatch_deadline(D),
+            "stall_breaker": test_stall_breaker(D),
             "archive_never_gates": test_archive_never_gates(D),
             "task_ordering": test_task_ordering(D),
         }

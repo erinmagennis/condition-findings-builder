@@ -1,0 +1,48 @@
+[
+ {
+  "chunk": 21,
+  "part": [
+   0,
+   1
+  ],
+  "ok": true,
+  "reason": "ok",
+  "yield": 1.0,
+  "findings": 5,
+  "blocked_frac": 0.0,
+  "guard_violations": 0,
+  "attempt": 1,
+  "tokens_out": null,
+  "retained_fulltext": null,
+  "n_expected": 5,
+  "archive_file": null,
+  "archive_gz_bytes": null,
+  "archive_gz_mb": null,
+  "archive_gz_mib": null,
+  "archive_compression_ratio": null,
+  "archive_error": null
+ },
+ {
+  "chunk": 22,
+  "part": [
+   0,
+   1
+  ],
+  "ok": true,
+  "reason": "ok",
+  "yield": 1.0,
+  "findings": 5,
+  "blocked_frac": 0.0,
+  "guard_violations": 0,
+  "attempt": 1,
+  "tokens_out": null,
+  "retained_fulltext": null,
+  "n_expected": 5,
+  "archive_file": null,
+  "archive_gz_bytes": null,
+  "archive_gz_mb": null,
+  "archive_gz_mib": null,
+  "archive_compression_ratio": null,
+  "archive_error": null
+ }
+]

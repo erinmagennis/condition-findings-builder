@@ -45,12 +45,21 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import load_config, render_prompt, pipeline_config, condition_values  # noqa: E402
 
 CFG = load_config(os.environ.get("CORPUS_CONFIG"), warn=lambda m: print(m, file=sys.stderr))
-BUILD_AFTER = CFG["artifacts"].get("build_after")   # ISO cutoff: older same-prefix chunk files are NOT this build's
+BUILD_AFTER = CFG["artifacts"].get("build_after")
+STORE_RETRIES, STORE_RETRY_PAUSE_S = 4, 20
+# 2026-10-08 stall breaker. Waves 0-1: 24 units, wall 420-1517 s (median ~700 s). Wave 2: every
+# in-flight unit ran >3000 s and saved nothing, i.e. a SYSTEM stall, and the per-unit watchdog
+# re-split and re-dispatched into it for 3 h. Rule: if no unit has completed for STALL_S and every
+# in-flight unit is older than STALL_S, stop dispatching, stop the in-flight workers, and return
+# {"stalled": True}. STALL_S is adaptive: 2.5x the longest completed unit so far, floored at
+# STALL_MIN_S and capped at WORKER_MAX_S (the watchdog). Never re-split on a stall.
+# (BUILD_AFTER above: ISO cutoff; older same-prefix chunk files are NOT this build's)
 PIPE   = CFG["artifacts"].get("pipeline_vid")   # pipeline.py artifact id the workers exec
 ROSTER = CFG["artifacts"].get("roster_vid")     # roster parquet artifact id
 TARGET_CHUNKS = list(CFG["tier"]["target_chunks"])   # EXPLICIT list from config, never range(N)
 
 _P = CFG["pinned"]
+STALL_MIN_S = int(_P.get("stall_min_s", 1500))
 MODEL         = CFG["model"]["id"]     # literal; the pipeline module is configured to the same
 FETCH_PACING  = float(_P["fetch_pacing_s"])
 N_INFLIGHT    = int(_P["n_inflight"])
@@ -84,11 +93,27 @@ def is_ceiling(stats):
     return bool(CEILING_RX.search(str((stats or {}).get("error") or "")))
 
 
+def _list_chunk_files(host):
+    """2026-10-07 wave 2: one transient `host_call 'list_artifacts' failed` inside the slice loop
+    killed the whole wave controller (3 h of in-flight work orphaned). Retry the store query a few
+    times with a pause; re-raise only if it keeps failing."""
+    last = None
+    for attempt in range(STORE_RETRIES):
+        try:
+            return host.artifacts(filename=f"{FILE_PREFIX}chunk_", limit=900,
+                                  **({"after": BUILD_AFTER} if BUILD_AFTER else {}))
+        except Exception as e:  # noqa: BLE001 - host_call errors surface as RuntimeError
+            last = e
+            print(f"[parts] store query failed (attempt {attempt + 1}/{STORE_RETRIES}): {str(e)[:120]}", flush=True)
+            time.sleep(STORE_RETRY_PAUSE_S)
+    raise last
+
+
 def done_units(host, targets):
     """-> (done_chunks, have_parts) where done means a whole file or a complete
     part set. have_parts maps cid -> {(i,n) present} so a resumed run re-dispatches
     only the MISSING parts and never re-pays for one already saved."""
-    r = host.artifacts(filename=f"{FILE_PREFIX}chunk_", limit=900, **({"after": BUILD_AFTER} if BUILD_AFTER else {}))
+    r = _list_chunk_files(host)
     whole, parts = set(), {}
     px = re.escape(FILE_PREFIX)
     for a in r["artifacts"]:
@@ -116,7 +141,7 @@ def archive_units(host, targets):
     doneness. A chunk whose findings are saved but whose archive is missing is DONE;
     re-extracting it would spend a full chunk of tokens to recover a storage artefact.
     -> (chunks_with_whole_archive, {cid: {(i,n) present}})"""
-    r = host.artifacts(filename=f"{FILE_PREFIX}chunk_", limit=900, **({"after": BUILD_AFTER} if BUILD_AFTER else {}))
+    r = _list_chunk_files(host)
     whole, parts = set(), {}
     px = re.escape(FILE_PREFIX)
     for a in r["artifacts"]:
@@ -337,7 +362,7 @@ def gate(cid, so):
 
 
 def run(host, build_task, gate, targets, split_all=True, n_parts=N_PARTS_DEFAULT, log_prefix="",
-        roster_df=None, run_tag=None):
+        roster_df=None, run_tag=None, dispatch_deadline=None):
     """Dispatch `targets` as parts. Returns a computed report -- every count in it
     comes from a variable, never a typed literal.
 
@@ -376,7 +401,16 @@ def run(host, build_task, gate, targets, split_all=True, n_parts=N_PARTS_DEFAULT
     print(f"{log_prefix}[parts] start: {len(pending)} work units over "
           f"{len(targets - done)} chunks; {len(done)} already done", flush=True)
 
+    # 2026-10-08: `dispatch_deadline` (epoch seconds) = the user's usage window end minus the
+    # longest unit we have observed. After it, NO new unit is started: in-flight units finish and
+    # save, pending ones are left for the next session (done-detection re-plans them from the
+    # store). A unit killed mid-run saves nothing, so the deadline is what bounds loss to zero.
     def refill():
+        if dispatch_deadline is not None and time.time() >= dispatch_deadline and pending:
+            if not refill.announced:
+                print(f"{log_prefix}[parts] dispatch deadline reached: {len(pending)} unit(s) left for the next session", flush=True)
+                refill.announced = True
+            return
         while len(inflight) < N_INFLIGHT and pending:
             cid, part = pending.pop(0)
             key = (cid, part)
@@ -392,11 +426,37 @@ def run(host, build_task, gate, targets, split_all=True, n_parts=N_PARTS_DEFAULT
             print(f"{log_prefix}[parts] dispatched chunk {cid} part {part} "
                   f"(attempt {attempts[key]}) frame {fid[:8]}", flush=True)
 
+    refill.announced = False
+    last_completion = time.time(); completed_walls = []
+    def _stall_s():
+        return min(WORKER_MAX_S, max(STALL_MIN_S, int(2.5 * max(completed_walls)) if completed_walls else STALL_MIN_S))
+    def _system_stalled(now):
+        if not inflight or now - last_completion < _stall_s():
+            return False
+        return all(now - starts.get(fid, now) >= _stall_s() for fid in inflight)
+    stalled = False
+    def _past_deadline():
+        return dispatch_deadline is not None and time.time() >= dispatch_deadline
     refill()
-    while inflight or pending:
+    while inflight or (pending and not _past_deadline()):
         res = host.collect(list(inflight.keys()), timeout=COLLECT_SLICE) if inflight else []
-        # watchdog: reclaim a slot from a worker past WORKER_MAX_S
         now = time.time()
+        for r in res or []:
+            if r.get("status") in ("completed", "failed", "cancelled") and r.get("frame_id") in starts:
+                last_completion = now; completed_walls.append(now - starts[r["frame_id"]])
+        if _system_stalled(now):
+            stalled = True
+            print(f"{log_prefix}[parts] SYSTEM STALL: no unit completed for {int(now - last_completion)} s and all "
+                  f"{len(inflight)} in-flight units are older than {_stall_s()} s -> stopping workers, NOT re-dispatching", flush=True)
+            for fid, (cid, part) in list(inflight.items()):
+                try:
+                    host.stop_child(fid, reason="system stall: no unit completed for %d s" % int(now - last_completion))
+                except Exception as e:  # noqa: BLE001
+                    print(f"{log_prefix}[parts] stop_child({fid[:8]}) failed: {str(e)[:100]}", flush=True)
+                pending.insert(0, (cid, part)); attempts[(cid, part)] = max(0, attempts.get((cid, part), 1) - 1)
+            inflight.clear()
+            break
+        # watchdog: reclaim a slot from a worker past WORKER_MAX_S
         for fid in list(inflight.keys()):
             if now - starts.get(fid, now) > WORKER_MAX_S:
                 cid, part = inflight[fid]
@@ -507,9 +567,12 @@ def run(host, build_task, gate, targets, split_all=True, n_parts=N_PARTS_DEFAULT
               f"in-flight {len(inflight)} | pending {len(pending)} | "
               f"archives {len(aw) + len(ap)}", flush=True)
 
+    deferred_units = [{"chunk": c, "part": p} for (c, p) in pending]   # left for the next session / after the stall
     final_done, final_parts = done_units(host, targets)
     arc_whole, arc_parts = archive_units(host, targets)
     return {"run_tag": run_tag, "unit_plan": unit_plan, "chunks_done": sorted(final_done & targets),
+            "deferred_units": deferred_units, "dispatch_deadline": dispatch_deadline,
+            "stalled": stalled, "stall_threshold_s": _stall_s(), "completed_unit_walls_s": [round(w) for w in completed_walls],
             "chunks_missing": sorted(targets - final_done),
             "n_done": len(final_done & targets), "n_targets": len(targets),
             "gate_log": gate_log, "guard_violations": guard_log,
