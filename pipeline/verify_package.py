@@ -167,7 +167,9 @@ def main():
 
     manifest, stats, df = _load(root)
     cs = checks(df, stats, manifest)
-    inv = invariants(df, stats["chunk_ids"], stats["chunk_paper_allotment"])
+    # 2026-10-08: conservation is measured against the FROZEN ROSTER's chunk list (expected_chunk_ids),
+    # not the data's own chunk list — otherwise an absent chunk can never fail. Older packages lack the key.
+    inv = invariants(df, stats.get("expected_chunk_ids", stats["chunk_ids"]), stats["chunk_paper_allotment"])
     st = self_test(df, stats, manifest) if a.self_test else None
 
     n_fail = sum(1 for c in cs if not c["ok"])

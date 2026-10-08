@@ -84,9 +84,14 @@ def package_stats(d, roster, census, cfg, retained, build_utc, corpus_vid):
     """Every number computed from `d`; keys match what pipeline/verify_package.py re-derives."""
     st = {"package": cfg["_pkg_slug"], "label": cfg["tier"]["label"], "findings": int(len(d)),
           "papers": int(d.pmid.nunique()), "tier_source": str(d.tier_source.iloc[0]) if len(d) else None}
+    # 2026-10-08: expected chunks come from the FROZEN ROSTER, not from the data — a chunk that produced
+    # no rows (EDS Tier 1 chunk 17: 6 papers, all wrong-sense/erratum) must FAIL conservation and be
+    # declared, not vanish. Data-derived chunk list kept alongside for the README.
     st["chunk_ids"] = sorted(int(x) for x in d.chunk_id.dropna().unique()); st["n_chunks"] = len(st["chunk_ids"])
+    st["expected_chunk_ids"] = sorted(int(x) for x in roster.chunk_id.dropna().unique())
+    st["chunks_without_rows"] = sorted(set(st["expected_chunk_ids"]) - set(st["chunk_ids"]))
     alot = roster.groupby("chunk_id").pmid.nunique().to_dict()
-    st["chunk_paper_allotment"] = {str(int(c)): int(alot[c]) for c in st["chunk_ids"] if c in alot}
+    st["chunk_paper_allotment"] = {str(int(c)): int(alot[c]) for c in st["expected_chunk_ids"] if c in alot}
     st["year_range"] = [int(d.year.min()), int(d.year.max())] if len(d) else None
     st["themes"] = {k: {"findings": int(v), "papers": int(d[d.theme.eq(k)].pmid.nunique())} for k, v in d.theme.value_counts().items()}
     st["conditions"] = {str(k): {"findings": int(v), "papers": int(d[d.condition.eq(k)].pmid.nunique())} for k, v in d.condition.value_counts().items()}
@@ -206,6 +211,10 @@ def render_docs(cfg, st, inv, census, screen_summary, draw_report, gate_log, ver
           f"{c['n_traceable']} traced ({c['traceable_pct_of_verifiable']}% of checkable).")
     A("")
     A(f"### Invariants — {n_ok}/{len(inv['checks'])} pass" + ("" if inv["all_ok"] else " — **declared failures below, not repaired**"))
+    if st.get("chunks_without_rows"):
+        A("")
+        A(f"Chunks in the frozen roster with NO rows in the data: {st['chunks_without_rows']} (expected chunks {len(st['expected_chunk_ids'])}, "
+          f"chunks with rows {st['n_chunks']}). The conservation invariant fails on purpose for these; the basis for each is in `scope/`.")
     A("")
     A(_tbl(inv_rows, ["check", "result", "detail"]))
     A("")
@@ -311,7 +320,7 @@ def build_generic(area_cfg_path, corpus_path, roster_path, out_dir, version, qa_
     draw_report = json.load(open(os.path.join(qa_dir, "draw_report.json"))) if qa_dir and os.path.exists(os.path.join(qa_dir, "draw_report.json")) else None
     gate_log = json.load(open(os.path.join(qa_dir, "gate_log.json"))) if qa_dir and os.path.exists(os.path.join(qa_dir, "gate_log.json")) else None
     st = package_stats(d, roster, census, cfg, retained, build_utc, corpus_vid)
-    inv = INV.run_all(d, st["chunk_ids"], st["chunk_paper_allotment"], prior_rows=0, prior_papers=0, condition_enum=condition_values(cfg))
+    inv = INV.run_all(d, st["expected_chunk_ids"], st["chunk_paper_allotment"], prior_rows=0, prior_papers=0, condition_enum=condition_values(cfg))
     r9 = INVX.check_authority_prefix_match(d); inv["checks"].append(r9); inv["all_ok"] = bool(inv["all_ok"] and r9["ok"])
     st["invariants"] = dict(all_ok=inv["all_ok"], per_check={c["name"]: dict(ok=c["ok"], **{k: v for k, v in c.items() if k not in ("name", "ok")}) for c in inv["checks"]})
     st["enum_drift"] = dict(**next((c for c in inv["checks"] if c["name"] == "enum_drift"), {}).get("flagged", {}))

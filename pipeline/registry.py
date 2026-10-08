@@ -18,9 +18,12 @@ import re
 
 import pandas as pd
 
-REGISTRY_SCHEMA_VERSION = "registry-v0 (2026-10-07)"
+REGISTRY_SCHEMA_VERSION = "registry-v1 (2026-10-08)"
 
-STATUS = ("extracted", "dispatched_no_yield", "referenced", "planned")
+# v1 adds two terminal non-extraction statuses so a screened-out or text-less paper is never left
+# as "planned": excluded_screen (two-pass screen, basis in scope/), not_extractable (no abstract in
+# Europe PMC or PubMed and no full text expected).
+STATUS = ("extracted", "dispatched_no_yield", "referenced", "planned", "excluded_screen", "not_extractable")
 UNIVERSE_STATUS = ("shared", "new")
 KEY = ["pmid", "corpus", "tier", "pipeline_generation", "prompt_ref", "chunk_id", "extraction_status"]
 COLUMNS = KEY + [
@@ -306,11 +309,16 @@ def inv_reference_only_consistent(reg):
 
 
 def inv_universe_status_consistent(reg):
+    # v1 (2026-10-08): a shared paper is REFERENCED when the sibling holds its findings, and may be
+    # extracted / no-yield / excluded / not-extractable here when the sibling dispatched it without
+    # yield (sibling_dispatched_no_yield=True). A new paper is never "referenced".
     u = reg[reg.universe_status.notna()]
-    bad = u[(u.universe_status == "shared") != (u.extraction_status == "referenced")]
-    bad2 = u[(u.universe_status == "new") & (~u.extraction_status.isin(["planned", "extracted", "dispatched_no_yield"]))]
-    return _res("universe_status_consistent", (pd.concat([bad, bad2]).pmid.astype(str)).tolist(),
-                "universe_status=shared <=> extraction_status=referenced; new => planned/extracted/dispatched_no_yield")
+    sib_ny = u.sibling_dispatched_no_yield.fillna(False).astype(bool)
+    bad = u[(u.universe_status == "shared") & (u.extraction_status != "referenced") & ~sib_ny]
+    bad1 = u[(u.universe_status == "shared") & (u.extraction_status == "referenced") & sib_ny]
+    bad2 = u[(u.universe_status == "new") & (u.extraction_status == "referenced")]
+    return _res("universe_status_consistent", (pd.concat([bad, bad1, bad2]).pmid.astype(str)).tolist(),
+                "shared & not sibling_dispatched_no_yield <=> referenced; shared & sibling_dispatched_no_yield => not referenced; new => never referenced")
 
 
 def inv_n_findings_by_status(reg):
