@@ -4,3 +4,6 @@
 0/4 chunks | units in-flight 3 | pending 1 | +0 -0 | archives 0
 0/4 chunks | units in-flight 3 | pending 1 | +0 -0 | archives 0
 0/4 chunks | units in-flight 3 | pending 1 | +0 -0 | archives 0
+0/4 chunks | units in-flight 3 | pending 1 | +0 -0 | archives 0
+0/4 chunks | units in-flight 3 | pending 1 | +0 -0 | archives 0
+0/4 chunks | units in-flight 3 | pending 1 | +0 -0 | archives 0
