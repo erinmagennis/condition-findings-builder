@@ -302,14 +302,16 @@
  },
  "pinned": {
   "papers_per_chunk": 50,
-  "fetch_pacing_s": 0.9,
+  "fetch_pacing_s": 1.5,
   "fetch_attempts": 6,
-  "n_inflight": 3,
-  "n_parts_default": 2,
+  "n_inflight": 5,
+  "n_parts_default": 1,
   "max_attempts": 3,
   "worker_max_s": 3000,
   "collect_slice_s": 120,
   "min_yield": 0.6,
+  "retry_under_yield": false,
+  "stall_min_s": 1500,
   "warn_blocked": 0.05,
   "max_blocked": 0.35,
   "min_ft_chars": 2000,
@@ -438,7 +440,7 @@
  "artifacts": {
   "file_prefix": "eds_t2_",
   "build_after": "2026-10-13T22:10:10Z",
-  "roster_vid": "PENDING",
+  "roster_vid": "b0295118-bfd3-439e-8fa3-accdfab4d368",
   "pipeline_vid": "afa47b13-ae5b-474d-926a-19918ba8b527",
   "prompt_vid": "a8fd46b7-07e6-4938-b495-37f919565bc7"
  },

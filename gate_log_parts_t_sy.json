@@ -1,0 +1,26 @@
+[
+ {
+  "chunk": 31,
+  "part": [
+   0,
+   1
+  ],
+  "ok": false,
+  "reason": "under-yield 0.30<0.6",
+  "yield": 0.3,
+  "findings": 9,
+  "blocked_frac": 0.0,
+  "guard_violations": 0,
+  "attempt": 1,
+  "tokens_out": null,
+  "retained_fulltext": null,
+  "n_expected": 30,
+  "archive_file": null,
+  "archive_gz_bytes": null,
+  "archive_gz_mb": null,
+  "archive_gz_mib": null,
+  "archive_compression_ratio": null,
+  "archive_error": null,
+  "accepted_structural_under_yield": true
+ }
+]

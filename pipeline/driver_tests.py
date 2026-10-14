@@ -219,6 +219,35 @@ def test_stall_breaker(D):
     return cases
 
 
+def test_structural_under_yield(D):
+    """With retry_under_yield=False a saved under-yield unit (blocked in band, 0 guard) is accepted once,
+    not re-dispatched; with the default True it is retried as before."""
+    cases = []
+    class YHost(FakeHost):
+        def __init__(self): super().__init__([]); self.dispatched = []
+        def delegate(self, req, wait=False):
+            self.dispatched.append(req["name"]); return {"frame_id": f"f{len(self.dispatched)}", "status": "running"}
+        def collect(self, fids, timeout=0):
+            out = []
+            for fid in fids:
+                self.filenames.append(f"{D.FILE_PREFIX}chunk_031_part0of1_findings.parquet")
+                out.append({"frame_id": fid, "status": "completed", "structured_output": {"chunk_id": 31, "version_id": "v",
+                            "stats": {"yield_frac": 0.3, "n_findings": 9, "n_expected": 30, "blocked_frac": 0.0, "guard_violations": 0, "enum_violations": {}}}})
+            return out
+    prev = (D.COLLECT_SLICE, D.RETRY_UNDER_YIELD); D.COLLECT_SLICE = 0
+    try:
+        D.RETRY_UNDER_YIELD = False; h = YHost()
+        rep = D.run(h, lambda cid, part=None: "task", D.gate, [31], split_all=True, n_parts=1, run_tag="t_sy")
+        cases.append(_case("structural_under_yield_not_retried", len(h.dispatched), 1))
+        cases.append(_case("structural_flag_recorded", rep["gate_log"][0].get("accepted_structural_under_yield"), True))
+        D.RETRY_UNDER_YIELD = True; h2 = YHost()
+        D.run(h2, lambda cid, part=None: "task", D.gate, [31], split_all=True, n_parts=1, run_tag="t_sy2")
+        cases.append(_case("default_still_retries", len(h2.dispatched), D.MAX_ATTEMPTS))
+    finally:
+        D.COLLECT_SLICE, D.RETRY_UNDER_YIELD = prev
+    return cases
+
+
 def test_done_units(D):
     """Defect 3: a chunk completed as a COMPLETE PART SET must count as done.
     Target set is the POTS Tier-4 range; it is test data, not configuration."""
@@ -420,6 +449,7 @@ def run_all(path=os.path.join(HERE, "driver.py")):
             "store_retry": test_store_retry(D),
             "dispatch_deadline": test_dispatch_deadline(D),
             "stall_breaker": test_stall_breaker(D),
+            "structural_under_yield": test_structural_under_yield(D),
             "archive_never_gates": test_archive_never_gates(D),
             "task_ordering": test_task_ordering(D),
         }

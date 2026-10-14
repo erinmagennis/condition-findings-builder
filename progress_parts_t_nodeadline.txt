@@ -1,5 +1,1 @@
 2/2 chunks | units in-flight 0 | pending 0 | +2 -0 | archives 0
-2/2 chunks | units in-flight 0 | pending 0 | +2 -0 | archives 0
-2/2 chunks | units in-flight 0 | pending 0 | +2 -0 | archives 0
-2/2 chunks | units in-flight 0 | pending 0 | +2 -0 | archives 0
-2/2 chunks | units in-flight 0 | pending 0 | +2 -0 | archives 0

@@ -60,6 +60,7 @@ TARGET_CHUNKS = list(CFG["tier"]["target_chunks"])   # EXPLICIT list from config
 
 _P = CFG["pinned"]
 STALL_MIN_S = int(_P.get("stall_min_s", 1500))
+RETRY_UNDER_YIELD = bool(_P.get("retry_under_yield", True))   # Tier 2 sets false (structural low yields are accepted, flagged)
 MODEL         = CFG["model"]["id"]     # literal; the pipeline module is configured to the same
 FETCH_PACING  = float(_P["fetch_pacing_s"])
 N_INFLIGHT    = int(_P["n_inflight"])
@@ -549,7 +550,17 @@ def run(host, build_task, gate, targets, split_all=True, n_parts=N_PARTS_DEFAULT
                 finished += 1
             else:
                 failed += 1
-                if attempts.get(key, 0) < MAX_ATTEMPTS:
+                # 2026-10-09 efficiency rule: an under-yield unit that SAVED its findings, with blocked
+                # fraction inside the band and no guard violations, is structural (thin abstracts, wrong-
+                # sense papers, sibling no-yield papers) — Tier 1 spent ~0.6M tokens on retries that
+                # reproduced the same yield. Accept it with a flag instead of re-dispatching.
+                structural = (RETRY_UNDER_YIELD is False and vid and str(reason).startswith("under-yield")
+                              and (st.get("blocked_frac") or 0) <= MAX_BLOCKED and not gv)
+                if structural:
+                    gate_log[-1]["accepted_structural_under_yield"] = True
+                    print(f"{log_prefix}[parts] chunk {cid} part {part} under-yield accepted as structural "
+                          f"(saved, blocked {st.get('blocked_frac')}, 0 guard violations): {reason}", flush=True)
+                elif attempts.get(key, 0) < MAX_ATTEMPTS:
                     pending.append((cid, part))
                 print(f"{log_prefix}[parts] chunk {cid} part {part} FAILED: {reason}", flush=True)
 

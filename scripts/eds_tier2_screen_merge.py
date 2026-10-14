@@ -115,7 +115,12 @@ def merge_pass1(a):
     errs = rep[rep.llm_error.notna()] if "llm_error" in rep else rep.iloc[0:0]
     print(json.dumps({"reports": len(reps), "rows": int(len(rep)), "duplicates_resolved": int(dup.pmid.nunique()),
                       "missing_from_reports": len(missing), "not_in_roster": len(extra), "rows_with_llm_error": int(len(errs))}))
-    if (missing or len(errs)) and not a.allow_partial:
+    if len(errs) and a.errors_as_uncertain and not missing:
+        # 2026-10-13: after a retry in a fresh frame the model still REFUSED these rows (stop_reason=refusal).
+        # No verdict is invented: llm_verdict stays None, reconcile() routes them to `uncertain`, and pass 2
+        # (a different prompt) gets an independent look. Recorded in the summary and on the rows (llm_error).
+        print(json.dumps({"errors_routed_to_uncertain": errs.pmid.tolist()}))
+    elif (missing or len(errs)) and not a.allow_partial:
         pd.Series(missing, name="pmid").to_csv(f"{a.out}_missing_pmids.csv", index=False)
         errs.to_csv(f"{a.out}_error_rows.csv", index=False)
         raise SystemExit("REFUSED: every rostered paper needs a pass-1 LLM verdict before merging "
@@ -134,7 +139,11 @@ def merge_pass1(a):
     json.dump({"units": units, "sizes": sizes, "n_uncertain": int(len(unc)), "cap": a.pass2_cap}, open(f"{a.out}_pass2_units.json", "w"), indent=1)
     rule_off = int((rec.rule_verdict == "off_topic").sum()); llm_off = int((rec.llm_verdict == "off_topic").sum())
     from helpers import screen_instrument_alarm
-    summ = dict(n=int(len(rec)), partial=bool(missing or len(errs)), n_missing=len(missing), n_llm_error=int(len(errs)),
+    if len(errs) and a.errors_as_uncertain:
+        bad = rec[rec.pmid.isin(errs.pmid) & (rec.final_verdict != "uncertain")]
+        if len(bad): raise SystemExit(f"errored rows must reconcile to uncertain, got {bad[['pmid','final_verdict']].values.tolist()}")
+    summ = dict(n=int(len(rec)), partial=bool(missing or (len(errs) and not a.errors_as_uncertain)), n_missing=len(missing), n_llm_error=int(len(errs)),
+                llm_error_pmids_routed_to_uncertain=errs.pmid.tolist() if a.errors_as_uncertain else [],
                 final=rec.final_verdict.value_counts().to_dict(), rule=rec.rule_verdict.value_counts().to_dict(),
                 llm=rec.llm_verdict.value_counts(dropna=False).astype(str).to_dict(),
                 llm_span_verbatim=dict(n=int(rec.llm_span_verbatim.notna().sum()), ok=int(rec.llm_span_verbatim.fillna(False).astype(bool).sum())),
@@ -200,7 +209,8 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(); sp = ap.add_subparsers(dest="cmd", required=True)
     m = sp.add_parser("merge-pass1"); m.add_argument("--roster", required=True); m.add_argument("--reports", nargs="+", required=True)
     m.add_argument("--out", default="screen_eds_t2_pass1"); m.add_argument("--pass2-cap", type=int, default=200)
-    m.add_argument("--allow-partial", action="store_true", help="interim merge while units are outstanding (summary.partial=true)"); m.set_defaults(fn=merge_pass1)
+    m.add_argument("--allow-partial", action="store_true", help="interim merge while units are outstanding (summary.partial=true)")
+    m.add_argument("--errors-as-uncertain", action="store_true", help="after a fresh-frame retry still errors (model refusal): route those rows to uncertain for pass 2; never invents a verdict"); m.set_defaults(fn=merge_pass1)
     f = sp.add_parser("finalize"); f.add_argument("--roster", required=True); f.add_argument("--pass1", required=True); f.add_argument("--pass2", nargs="+", required=True)
     f.add_argument("--cost-model", default=os.path.join(HERE, "..", "config", "eds_cost_model_v2.json")); f.add_argument("--config", default=os.path.join(HERE, "..", "config", "eds_tier2.json")); f.set_defaults(fn=finalize)
     a = ap.parse_args(); a.fn(a)

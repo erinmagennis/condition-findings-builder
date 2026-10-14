@@ -249,14 +249,16 @@ model:
 
 pinned:
   papers_per_chunk: 50        # calibrated value restored 2026-10-07 (dry run used 25)
-  fetch_pacing_s: 0.9         # pinned; never raised
+  fetch_pacing_s: 1.5    # TIER 2 OVERRIDE: 5 workers x 1.5 s = 3.3 req/s aggregate == the calibrated 3 x 0.9 s; abstract-only papers cost one search each
   fetch_attempts: 6
-  n_inflight: 3               # pinned; never raised
-  n_parts_default: 2          # calibrated value restored 2026-10-07 (dry run used 1); plan_parts() raises it per chunk
+  n_inflight: 5               # TIER 2 OVERRIDE (2026-10-13): 93% abstract-only roster -> fetch load ~1 search/paper; the 3-worker pacing budget was tuned for full-text-heavy chunks. Tier 1 stays at 3.
+  n_parts_default: 1          # TIER 2 OVERRIDE (2026-10-13): whole-chunk units (<=50 abstract papers ~270k output tokens, far below the 2.0M ceiling); plan_parts() still splits on full-text density (max_fulltext_per_unit 12)
   max_attempts: 3
   worker_max_s: 3000
   collect_slice_s: 120
   min_yield: 0.60
+  retry_under_yield: false    # TIER 2 (2026-10-13): an under-yield unit that saved its output with blocked<=max_blocked and 0 guard violations is accepted + flagged, never re-dispatched (Tier 1 spent ~0.6M tokens on retries that reproduced the same yield)
+  stall_min_s: 1500
   warn_blocked: 0.05
   max_blocked: 0.35
   min_ft_chars: 2000
@@ -282,7 +284,7 @@ artifacts:
   # under the same prefix; the pilot's done-detection took them for the full build's chunk 0 and skipped it.
   build_after: "2026-10-13T22:10:10Z"
   # roster_vid = eds_tier1_roster.parquet as saved 2026-10-07 (frozen Tier-1 roster; shared papers excluded).
-  roster_vid: "PENDING"
+  roster_vid: b0295118-bfd3-439e-8fa3-accdfab4d368  # eds_tier2_roster_v2.parquet (2026-10-14): 2,734 papers / chunks 30-137 (31-35 empty), post two-pass screen + title-only split
   # pipeline_vid / prompt_vid unchanged from the dry run: pipeline/pipeline.py and prompt_template.txt were NOT edited.
   pipeline_vid: "afa47b13-ae5b-474d-926a-19918ba8b527"   # eds_pipeline.py = pipeline/pipeline.py as patched 2026-09-30
   prompt_vid: "a8fd46b7-07e6-4938-b495-37f919565bc7"     # eds_prompt_rendered.txt (dry run; template unchanged)
