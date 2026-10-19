@@ -248,6 +248,32 @@ def test_structural_under_yield(D):
     return cases
 
 
+def test_first_turn_check(D):
+    """Workers that never produce an assistant turn are declared stalled after FIRST_TURN_S, long
+    before the completion-based window; workers that HAVE started are not."""
+    cases = []
+    clock = {"t": 2_000_000.0}
+    class NeverStart(FakeHost):
+        def __init__(self, started): super().__init__([]); self.dispatched = []; self.stopped = []; self.started = started
+        def delegate(self, req, wait=False):
+            self.dispatched.append(req["name"]); return {"frame_id": f"f{len(self.dispatched)}", "status": "running"}
+        def collect(self, fids, timeout=0):
+            clock["t"] += 300; return [{"frame_id": f, "status": "running"} for f in fids]
+        def stop_child(self, fid, reason=""): self.stopped.append(fid)
+        def frames(self, frame_id=None, max_results=None, **kw):
+            return {"messages": ([{"role": "user"}, {"role": "assistant"}] if self.started else [{"role": "user"}])}
+    real_time = D.time.time; prev = (D.COLLECT_SLICE, D.FIRST_TURN_S, D.STALL_MIN_S)
+    D.time.time = lambda: clock["t"]; D.COLLECT_SLICE = 0; D.FIRST_TURN_S = 480; D.STALL_MIN_S = 100000
+    try:
+        h = NeverStart(started=False); clock["t"] = 2_000_000.0
+        rep = D.run(h, lambda cid, part=None: "task", lambda cid, so: (True, 1.0, {}, "ok"), [41, 42], split_all=True, n_parts=1, run_tag="t_ft")
+        cases.append(_case("never_started_declared_stalled_fast", (rep["stalled"], clock["t"] - 2_000_000.0 <= 900), (True, True)))
+        cases.append(_case("never_started_workers_stopped", len(h.stopped), 2))
+    finally:
+        D.time.time = real_time; D.COLLECT_SLICE, D.FIRST_TURN_S, D.STALL_MIN_S = prev
+    return cases
+
+
 def test_done_units(D):
     """Defect 3: a chunk completed as a COMPLETE PART SET must count as done.
     Target set is the POTS Tier-4 range; it is test data, not configuration."""
@@ -450,6 +476,7 @@ def run_all(path=os.path.join(HERE, "driver.py")):
             "dispatch_deadline": test_dispatch_deadline(D),
             "stall_breaker": test_stall_breaker(D),
             "structural_under_yield": test_structural_under_yield(D),
+            "first_turn_check": test_first_turn_check(D),
             "archive_never_gates": test_archive_never_gates(D),
             "task_ordering": test_task_ordering(D),
         }

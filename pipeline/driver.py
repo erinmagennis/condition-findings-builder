@@ -60,7 +60,11 @@ TARGET_CHUNKS = list(CFG["tier"]["target_chunks"])   # EXPLICIT list from config
 
 _P = CFG["pinned"]
 STALL_MIN_S = int(_P.get("stall_min_s", 1500))
-RETRY_UNDER_YIELD = bool(_P.get("retry_under_yield", True))   # Tier 2 sets false (structural low yields are accepted, flagged)
+RETRY_UNDER_YIELD = bool(_P.get("retry_under_yield", True))
+# 2026-10-19: stalled workers had NO assistant turn at all (sub-agent never started: model/usage
+# unavailable). Declare a system stall as soon as EVERY in-flight worker is older than FIRST_TURN_S
+# and none has produced an assistant message, instead of waiting the full STALL window.
+FIRST_TURN_S = int(_P.get("first_turn_s", 480))   # Tier 2 sets false (structural low yields are accepted, flagged)
 MODEL         = CFG["model"]["id"]     # literal; the pipeline module is configured to the same
 FETCH_PACING  = float(_P["fetch_pacing_s"])
 N_INFLIGHT    = int(_P["n_inflight"])
@@ -431,10 +435,23 @@ def run(host, build_task, gate, targets, split_all=True, n_parts=N_PARTS_DEFAULT
     last_completion = time.time(); completed_walls = []
     def _stall_s():
         return min(WORKER_MAX_S, max(STALL_MIN_S, int(2.5 * max(completed_walls)) if completed_walls else STALL_MIN_S))
-    def _system_stalled(now):
-        if not inflight or now - last_completion < _stall_s():
+    def _never_started(fid):
+        try:
+            fr = host.frames(frame_id=fid, max_results=12)
+            return not any(m.get("role") == "assistant" for m in (fr.get("messages") or []))
+        except Exception:  # noqa: BLE001 - a store hiccup must not fabricate a stall
             return False
-        return all(now - starts.get(fid, now) >= _stall_s() for fid in inflight)
+    def _system_stalled(now):
+        if not inflight:
+            return False
+        if now - last_completion >= _stall_s() and all(now - starts.get(fid, now) >= _stall_s() for fid in inflight):
+            return True
+        # first-turn check: every in-flight worker older than FIRST_TURN_S and none has started
+        old_enough = [fid for fid in inflight if now - starts.get(fid, now) >= FIRST_TURN_S]
+        if old_enough and len(old_enough) == len(inflight) and all(_never_started(fid) for fid in old_enough):
+            print(f"{log_prefix}[parts] first-turn check: {len(inflight)} in-flight workers older than {FIRST_TURN_S} s with no assistant turn", flush=True)
+            return True
+        return False
     stalled = False
     def _past_deadline():
         return dispatch_deadline is not None and time.time() >= dispatch_deadline
