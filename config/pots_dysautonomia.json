@@ -1,0 +1,310 @@
+{
+ "area": {
+  "name": "POTS and related conditions (dysautonomia, ME/CFS, EDS/hypermobility, fibromyalgia, MCAS, small-fibre neuropathy, long COVID; autism/migraine/IBS intersections)",
+  "slug": "pots_dysautonomia",
+  "description_for_prompt": "POTS/dysautonomia/ME-CFS/EDS/fibromyalgia/MCAS/small-fiber-neuropathy/long-COVID (and their autism/migraine/IBS intersections)",
+  "families": [
+   {
+    "name": "dysautonomia / autonomic nervous system disorders",
+    "members": [
+     "POTS",
+     "familial dysautonomia (Riley-Day",
+     "ELP1/HSAN III)",
+     "hereditary sensory and autonomic neuropathies",
+     "multiple system atrophy",
+     "pure autonomic failure",
+     "orthostatic hypotension",
+     "orthostatic intolerance",
+     "syncope and convulsive syncope",
+     "vasovagal syncope",
+     "baroreflex failure",
+     "autonomic testing/QSART"
+    ]
+   },
+   {
+    "name": "headache / cephalalgia disorders",
+    "members": [
+     "migraine",
+     "trigeminal autonomic cephalalgias",
+     "cluster headache",
+     "SUNCT/SUNA",
+     "hemicrania",
+     "new daily persistent headache",
+     "secondary headache with autonomic features"
+    ]
+   },
+   {
+    "name": "connective-tissue and hypermobility disorders",
+    "members": [
+     "Ehlers-Danlos (all types)",
+     "hypermobility spectrum disorder",
+     "joint hypermobility",
+     "Marfan",
+     "Loeys-Dietz",
+     "osteogenesis imperfecta"
+    ]
+   },
+   {
+    "name": "mast cell disease",
+    "members": [
+     "MCAS",
+     "systemic mastocytosis",
+     "hereditary alpha-tryptasemia"
+    ]
+   },
+   {
+    "name": "post-infectious / post-viral",
+    "members": [
+     "long COVID",
+     "PASC",
+     "post-viral fatigue",
+     "ME/CFS",
+     "PANS/PANDAS"
+    ]
+   },
+   {
+    "name": "autoimmune rheumatic disease studied for neurological/autonomic/fatigue/small-fibre/biomarker aspects",
+    "members": [
+     "Sjogren syndrome",
+     "systemic sclerosis with autonomic or small-fibre involvement"
+    ]
+   },
+   {
+    "name": "intersections",
+    "members": [
+     "fibromyalgia",
+     "irritable bowel syndrome",
+     "autism spectrum disorder",
+     "small-fibre neuropathy"
+    ]
+   }
+  ]
+ },
+ "abbreviation_collisions": [
+  {
+   "term": "HSD",
+   "corpus_sense": "hypermobility spectrum disorder",
+   "offtopic_senses": [
+    "hydroxysteroid dehydrogenase",
+    "honey-sweetened drink"
+   ]
+  },
+  {
+   "term": "ASD",
+   "corpus_sense": "autism spectrum disorder",
+   "offtopic_senses": [
+    "atrial septal defect",
+    "adult spinal deformity"
+   ]
+  },
+  {
+   "term": "EDS",
+   "corpus_sense": "Ehlers-Danlos syndrome",
+   "offtopic_senses": [
+    "excessive daytime sleepiness",
+    "electronic data systems"
+   ]
+  },
+  {
+   "term": "SS",
+   "corpus_sense": "Sjogren syndrome",
+   "offtopic_senses": [
+    "systemic sclerosis (in scope when studied for autonomic/small-fibre involvement)",
+    "steady-state"
+   ]
+  },
+  {
+   "term": "PANS/PANDAS",
+   "corpus_sense": "paediatric acute-onset neuropsychiatric syndrome",
+   "offtopic_senses": [
+    "polyarteritis nodosa",
+    "the animal"
+   ]
+  },
+  {
+   "term": "MS",
+   "corpus_sense": "(not used as a corpus term)",
+   "offtopic_senses": [
+    "mass spectrometry used as a mere method label"
+   ]
+  },
+  {
+   "term": "MD",
+   "corpus_sense": "(not used as a corpus term)",
+   "offtopic_senses": [
+    "mean difference"
+   ]
+  },
+  {
+   "term": "CM",
+   "corpus_sense": "(not used as a corpus term)",
+   "offtopic_senses": [
+    "Chiari malformation"
+   ]
+  }
+ ],
+ "condition": {
+  "semantics": "population",
+  "semantics_statement": "`condition` names the patient POPULATION the paper studied. A paper about mast-cell mediators in asthma is `general`, not `MCAS`, even though the finding may inform MCAS. Papers that carry a condition label without studying that population are bucket violations and are recorded in the additive annotations table (condition_population_kind = mechanism_only), not corrected in place.",
+  "definitions_version": "CONDITION_BUCKET_DEFINITIONS.md v1 (2026-09-16)",
+  "enum": [
+   {
+    "value": "POTS",
+    "definition": "PROVISIONAL (written 2026-09-16 for this config; not yet confirmed by a bucket census). Postural orthostatic tachycardia syndrome as the studied population, including its named subtypes (hyperadrenergic, neurogenic, hypovolemic) and POTS comorbid with hEDS/MCAS/long COVID when POTS is the specific subject."
+   },
+   {
+    "value": "ME_CFS",
+    "definition": "PROVISIONAL. Myalgic encephalomyelitis / chronic fatigue syndrome as the studied population, under any of the clinical case definitions (Fukuda, CCC, ICC, IOM/SEID); post-viral fatigue without an ME/CFS diagnosis belongs in `long_COVID` (if SARS-CoV-2) or `general`."
+   },
+   {
+    "value": "long_COVID",
+    "definition": "PROVISIONAL. Post-acute sequelae of SARS-CoV-2 infection (long COVID, PASC) as the studied population. Acute COVID-19 cohorts studied for autonomic or fatigue outcomes also land here; acute COVID-19 without a post-acute question is `general`."
+   },
+   {
+    "value": "EDS_hypermobility",
+    "definition": "Includes Ehlers-Danlos syndromes, hypermobility spectrum disorder, and generalized joint hypermobility assessed by Beighton score WITHOUT an EDS diagnosis. The corpus draw had a dedicated `hypermobility_spectrum` theme, so hypermobility-without-EDS appears to be deliberately in scope. (CONDITION_BUCKET_DEFINITIONS.md v1, verbatim.)"
+   },
+   {
+    "value": "fibromyalgia",
+    "definition": "PROVISIONAL. Fibromyalgia as the studied population (ACR 1990/2010/2016 criteria or clinician diagnosis). Chronic widespread pain without a fibromyalgia diagnosis is `general`."
+   },
+   {
+    "value": "MCAS",
+    "definition": "MCAS means mast cell activation syndrome specifically: the non-clonal activation syndrome, including idiopathic MCAS and MCAS comorbid with POTS/hEDS. Mastocytosis does NOT belong — it is a clonal neoplasm and a distinct diagnosis. Rationale: \"markers of MCAS\" must remain an answerable question, and pooling a clonal neoplasm with an activation syndrome makes it unanswerable. (CONDITION_BUCKET_DEFINITIONS.md v1, verbatim. Census: of 1,083 papers labelled MCAS, ~69% were mast-cell biology with no MCAS population, ~10% MCAS as defined, ~5% mastocytosis.)"
+   },
+   {
+    "value": "dysautonomia",
+    "definition": "Any autonomic disorder, including MSA, syncope, orthostatic intolerance and autonomic neuropathy, where POTS is not the specific subject. (CONDITION_BUCKET_DEFINITIONS.md v1, verbatim.)"
+   },
+   {
+    "value": "small_fiber_neuropathy",
+    "definition": "PROVISIONAL. Small-fibre neuropathy as the studied population, whether idiopathic or secondary, established by skin biopsy (IENFD), QSART or quantitative sensory testing; SFN found as a sub-phenotype within a fibromyalgia or POTS cohort is labelled by that cohort."
+   },
+   {
+    "value": "autism",
+    "definition": "PROVISIONAL. Autism spectrum disorder as the studied population (clinical diagnosis or validated instrument). NOT atrial septal defect or adult spinal deformity (abbreviation collision on ASD — a draw defect, flagged not deleted)."
+   },
+   {
+    "value": "migraine",
+    "definition": "PROVISIONAL. Migraine and other primary headache disorders as the studied population, including trigeminal autonomic cephalalgias and cluster headache; secondary headache only when autonomic features are the studied question."
+   },
+   {
+    "value": "IBS_gut",
+    "definition": "PROVISIONAL. Irritable bowel syndrome and functional gastrointestinal disorders (Rome criteria) as the studied population, including gastroparesis and functional dyspepsia studied for autonomic or comorbidity questions. Inflammatory bowel disease is `general` unless studied for an in-scope comorbidity."
+   },
+   {
+    "value": "multiple",
+    "definition": "Several listed conditions are subjects. (CONDITION_BUCKET_DEFINITIONS.md v1, verbatim.)"
+   },
+   {
+    "value": "general",
+    "definition": "The correct answer when no listed condition is the paper's subject. It is a catch-all by design; \"too vague\" is not a defect. (CONDITION_BUCKET_DEFINITIONS.md v1, verbatim.)"
+   }
+  ],
+  "subtype": {
+   "field": "pots_subtype",
+   "condition": "POTS",
+   "values": [
+    "hyperadrenergic",
+    "neurogenic",
+    "hypovolemic",
+    "not specified"
+   ]
+  }
+ },
+ "prompt": {
+  "template": "pipeline/prompt_template.txt",
+  "pathogen_examples": "EBV/Lyme",
+  "phenotype_example": "orthostatic intolerance; chronic fatigue; joint hypermobility",
+  "instrument_examples": "COMPASS-31, SF-36, Beighton",
+  "cohort_examples": "RECOVER, UK Biobank, DecodeME, All of Us"
+ },
+ "scope": {
+  "text": "SCOPE — a biomarker/mechanism corpus for POTS and RELATED conditions. The research programme is\n\"biological markers and causes of POTS and related conditions\": dysautonomia BROADLY, fibromyalgia,\nEhlers-Danlos/hypermobility, ME/CFS, IBS, migraine, autism, mast cell disease, small-fibre neuropathy.\n\nIN SCOPE is BROAD and the lists below are ILLUSTRATIVE, NOT EXHAUSTIVE. In particular:\n* ANY dysautonomia or autonomic-nervous-system disorder is IN SCOPE — including familial dysautonomia\n  (Riley-Day, ELP1/HSAN III), hereditary sensory and autonomic neuropathies, multiple system atrophy,\n  pure autonomic failure, orthostatic hypotension, orthostatic intolerance, syncope and convulsive\n  syncope, vasovagal syncope, baroreflex failure, autonomic testing/QSART studies.\n* ANY headache/cephalalgia disorder is in scope for the migraine layer — including trigeminal autonomic\n  cephalalgias, cluster headache, SUNCT/SUNA, hemicrania, new daily persistent headache, and secondary\n  headache when autonomic features are studied.\n* Connective-tissue and hypermobility disorders: Ehlers-Danlos (all types), hypermobility spectrum\n  disorder, joint hypermobility, Marfan, Loeys-Dietz, osteogenesis imperfecta.\n* Mast cell: MCAS, systemic mastocytosis, hereditary alpha-tryptasemia.\n* Post-infectious/post-viral: long COVID, PASC, post-viral fatigue, ME/CFS, PANS/PANDAS.\n* Sjogren syndrome, other autoimmune rheumatic disease WHEN studied for neurological, autonomic,\n  fatigue, small-fibre, or biomarker aspects.\n* Comorbidity, epidemiology, mechanism, biomarker, genetics, treatment, and patient-experience studies\n  of any of the above ALL COUNT as in scope.\n\nOFF TOPIC means one of two specific things:\n(1) WRONG ABBREVIATION SENSE — the paper uses an abbreviation in a sense foreign to this corpus:\n    HSD = hydroxysteroid dehydrogenase or honey-sweetened drink (not hypermobility spectrum disorder);\n    ASD = atrial septal defect or adult spinal deformity (not autism spectrum disorder);\n    EDS = excessive daytime sleepiness or electronic data systems (not Ehlers-Danlos);\n    SS = systemic sclerosis or steady-state (not Sjogren) — BUT systemic sclerosis studied for\n      autonomic/small-fibre involvement is in scope;\n    PANS/PANDAS = polyarteritis nodosa or the animal (not the paediatric neuropsychiatric syndrome);\n    MS = mass spectrometry used as a mere method label; MD = \"mean difference\"; CM = Chiari malformation.\n(2) TOPICAL DRIFT — an orthopaedic/sports-medicine joint-laxity paper (clubfoot Ponseti, hallux valgus,\n    ACL injury, TMJ prolotherapy) or a rare multi-system genetic syndrome where \"joint hypermobility\"\n    is one incidental phenotype item in a long list, with no dysautonomia/connective-tissue/biomarker\n    research question.\n\nWhen a paper studies one of many diseases including an in-scope one (e.g. a survey across rheumatic\ndiseases that includes Sjogren), that is IN SCOPE — cross-mention data is used by this corpus.\nIf genuinely torn, answer \"uncertain\". Do NOT answer off_topic merely because a condition is not\nnamed in the illustrative lists above.\n",
+  "topical_drift": "orthopaedic/sports-medicine joint-laxity papers and rare multi-system genetic syndromes where joint hypermobility is one incidental phenotype item, with no dysautonomia/connective-tissue/biomarker question"
+ },
+ "year_range": {
+  "start": 2020,
+  "end": 2026
+ },
+ "model": {
+  "id": "claude-sonnet-5",
+  "max_tokens_fulltext": 32000,
+  "max_tokens_abstract": 8000,
+  "max_tokens_screen": 2000
+ },
+ "pinned": {
+  "papers_per_chunk": 50,
+  "fetch_pacing_s": 0.9,
+  "fetch_attempts": 6,
+  "n_inflight": 3,
+  "n_parts_default": 2,
+  "max_attempts": 3,
+  "worker_max_s": 3000,
+  "collect_slice_s": 120,
+  "min_yield": 0.6,
+  "warn_blocked": 0.05,
+  "max_blocked": 0.35,
+  "min_ft_chars": 2000,
+  "ft_input_char_cap": 120000,
+  "llm_concurrency": 8,
+  "max_fulltext_per_unit": 12,
+  "watchdog_resplit": false
+ },
+ "retain_source_text": true,
+ "unescape_source_text": false,
+ "tier": {
+  "number": 4,
+  "label": "Tier 4 — migraine, hypermobility spectrum, Sjögren's, PANS/PANDAS",
+  "target_chunks": [
+   256,
+   257,
+   258,
+   259,
+   260,
+   261,
+   262,
+   263,
+   264,
+   265,
+   266,
+   267,
+   268,
+   269,
+   270,
+   271,
+   272,
+   273,
+   274,
+   275,
+   276,
+   277,
+   278,
+   279,
+   280,
+   281,
+   282,
+   283,
+   284,
+   285
+  ],
+  "env_name": "litmap"
+ },
+ "artifacts": {
+  "file_prefix": "",
+  "roster_vid": "4b415524-411a-4912-9fd5-528165ee4324",
+  "pipeline_vid": "e246e676-dae4-4d63-827d-604f6c7940bf",
+  "prompt_vid": "1991a0cd-02e6-49b8-b0ef-80a972dbaf85"
+ },
+ "package": {
+  "author": "Magennis, Erin",
+  "orcid": "0009-0007-9013-8052",
+  "license_code": "MIT",
+  "license_docs": "CC-BY-4.0",
+  "license_data": "CC-BY-4.0",
+  "doi_concept": "10.5281/zenodo.PLACEHOLDER",
+  "doi_version": "10.5281/zenodo.PLACEHOLDER",
+  "repository": "https://github.com/erinmagennis/pots-findings"
+ },
+ "_exported_from": "pots_dysautonomia.yaml"
+}
