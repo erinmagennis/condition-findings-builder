@@ -1,0 +1,300 @@
+# condition-corpus-builder — TIER-2 config (pre-2019 universe, 1936-2018). Copy of config/eds.yaml with ONLY
+# TIER-2 RECOVERY (2026-10-21): eds_tier2.yaml with chunks 160-166, prefix eds_t2r_, roster = title-only papers whose abstract was recovered from OpenAlex (abstract_source column). Not screened (abstracts did not exist at screen time): screen_final_verdict=unscreened_recovery, screen_verdict_uncertain=true on every row.
+# (eds-findings, sibling of pots-findings).
+#
+# History. Written 2026-09-30 from config/TEMPLATE.yaml for the 75-paper reusability dry run
+# (DRYRUN_EDS_REPORT.md; pinned deviations papers_per_chunk 25 / n_parts_default 1 were deliberate
+# test settings). Revised 2026-10-07 for the Tier-1 full build: pinned block restored to the
+# calibrated values (the validator must emit NO deviation warning), tier block points at the frozen
+# Tier-1 roster (eds_tier1_roster.parquet: 2019-2026 EDS/HSD papers NOT already extracted in
+# pots-findings; shared papers are referenced through the cross-corpus registry, never re-extracted),
+# scope/families/collisions reviewed against tier5_scope_definition.txt (ROSTER_REPORT.md lists the
+# additions). pipeline/pipeline.py and prompt_template.txt are unchanged from the dry run.
+
+area:
+  name: "Ehlers-Danlos syndromes (all 2017-classification types) and hypermobility spectrum disorder"
+  slug: eds
+  description_for_prompt: "Ehlers-Danlos syndromes/hypermobility spectrum disorder/generalized joint hypermobility (and their autonomic/mast-cell/GI/pain/psychiatric intersections)"
+  families:
+    - name: hypermobile Ehlers-Danlos syndrome and hypermobility spectrum disorders
+      members: [hypermobile EDS (hEDS, 2017 criteria), EDS hypermobility type / EDS type III (pre-2017 label),
+                joint hypermobility syndrome (JHS/BJHS), hypermobility spectrum disorder (HSD),
+                generalized/historical/localized/peripheral HSD (G-HSD, H-HSD, L-HSD, P-HSD)]
+    - name: classical, vascular and rare molecularly defined EDS types (2017 classification)
+      members: [classical EDS (cEDS; COL5A1/COL5A2/COL1A1), classical-like EDS (clEDS; TNXB, AEBP1),
+                cardiac-valvular EDS (cvEDS; COL1A2), vascular EDS (vEDS; COL3A1, COL1A1),
+                arthrochalasia EDS (aEDS), dermatosparaxis EDS (dEDS; ADAMTS2), kyphoscoliotic EDS (kEDS; PLOD1, FKBP14),
+                brittle cornea syndrome (BCS; ZNF469, PRDM5), spondylodysplastic EDS (spEDS; B4GALT7, B3GALT6, SLC39A13),
+                musculocontractural EDS (mcEDS; CHST14, DSE), myopathic EDS (mEDS; COL12A1), periodontal EDS (pEDS; C1R, C1S),
+                unclassified or novel molecularly defined EDS variants (e.g. AEBP1, THBS2 reports),
+                historical Villefranche and Berlin nosology (EDS types I-XI, EDS-HT),
+                EDS of unspecified or mixed type]
+    - name: generalized joint hypermobility without a syndromic diagnosis
+      members: [generalized joint hypermobility (GJH) by Beighton score, joint laxity assessed as a trait in a clinical cohort,
+                hypermobility in athletes/dancers when studied as a health outcome,
+                hEDS/HSD diagnostic criteria, nosology and classification debates]
+    - name: multisystem comorbidity and mechanism in EDS/HSD populations
+      members: [POTS/dysautonomia in EDS or HSD, mast cell activation in EDS or HSD, gastrointestinal dysmotility in EDS/HSD,
+                chronic pain/fatigue/proprioception in EDS/HSD, migraine and headache in EDS/HSD,
+                psychiatric and neurodevelopmental comorbidity (anxiety, neurodivergence) in EDS/HSD,
+                pelvic floor/obstetric and pregnancy outcomes, craniocervical instability, tethered cord, Chiari in EDS/HSD,
+                dental/periodontal, ocular and vascular events in EDS/HSD, anaesthesia and surgery outcomes IN EDS/HSD patients,
+                connective-tissue biomarkers/collagen/extracellular matrix in EDS, fibroblast, skin and dermal-ultrastructure studies,
+                tenascin-X, genetics and variant interpretation / genotype-phenotype in EDS, animal models of EDS genes
+                (veterinary dermatosparaxis when framed as a model of human EDS),
+                epidemiology, natural history, registries, diagnostic delay, quality of life, patient-reported outcomes,
+                physiotherapy/rehabilitation in EDS/HSD]
+    - name: differential-diagnosis neighbours studied comparatively with EDS or hypermobility
+      members: [Marfan syndrome, Loeys-Dietz syndrome, osteogenesis imperfecta, cutis laxa, Stickler syndrome,
+                pseudoxanthoma elasticum and other heritable connective-tissue disorders WHEN EDS or hypermobility is
+                studied, compared or discussed (a paper solely about one of them with no EDS/hypermobility content is `general`
+                and off topic); POTS or other cohorts reporting hEDS/HSD prevalence (cross-mention data is used)]
+
+# Foreign senses that will contaminate an abbreviation-based draw. Flagged at draw and screen time,
+# never fixable after extraction. (RUNBOOK stage 0-B.)
+abbreviation_collisions:
+  - term: EDS
+    corpus_sense: Ehlers-Danlos syndrome(s)
+    offtopic_senses: [excessive daytime sleepiness, energy-dispersive X-ray spectroscopy / electron-dispersive spectroscopy,
+                      Emery-Dreifuss muscular dystrophy (usually EDMD), extended dosing schedule, electronic data systems,
+                      Epworth daytime sleepiness scale contexts, ectodermal dysplasia]
+  - term: HSD
+    corpus_sense: hypermobility spectrum disorder
+    offtopic_senses: [Tukey honestly significant difference (statistics), hydroxysteroid dehydrogenase (11beta-HSD / 17beta-HSD),
+                      high-sugar diet, hereditary spastic diplegia, honey-sweetened drink, hospital standardized data, high-speed data]
+  - term: GJH
+    corpus_sense: generalized joint hypermobility
+    offtopic_senses: [none known; treat any non-musculoskeletal use as foreign]
+  - term: JHS
+    corpus_sense: joint hypermobility syndrome
+    offtopic_senses: [Johanson-Blizzard or other syndromes abbreviated JHS in a non-hypermobility context,
+                      Japanese Hypertension Society, junior high school]
+  - term: BCS
+    corpus_sense: brittle cornea syndrome (an EDS-spectrum type)
+    offtopic_senses: [breast-conserving surgery, Budd-Chiari syndrome, British Cardiovascular Society, body condition score]
+  - term: HEDS
+    corpus_sense: (case variant of hEDS; not a corpus query term — but Europe PMC matches TITLE:hEDS case-insensitively)
+    offtopic_senses: [HCC Early Detection Strategy study (hepatocellular carcinoma) — found by the dry-run screen,
+                      bis(2-hydroxyethyl) disulfide / hydroxyethyl disulfide (glutaredoxin substrate chemistry) — found in the 2026-10-07 draw]
+  - term: vEDS/cEDS/kEDS
+    corpus_sense: vascular / classical / kyphoscoliotic EDS
+    offtopic_senses: [none known]
+  # Carried from tier5_scope_definition.txt (2026-09-16): comorbidity abbreviations that appear in the
+  # EDS/HSD intersection literature and have foreign senses of their own.
+  - term: POTS
+    corpus_sense: postural orthostatic tachycardia syndrome (as a comorbidity in EDS/HSD)
+    offtopic_senses: [any sense other than postural orthostatic tachycardia syndrome]
+  - term: MCAS
+    corpus_sense: mast cell activation syndrome (as a comorbidity in EDS/HSD)
+    offtopic_senses: [any sense other than mast cell activation syndrome]
+  - term: TNX/TNXB
+    corpus_sense: tenascin-X (classical-like EDS gene; in scope)
+    offtopic_senses: [tenascin-C papers without an EDS or hypermobility context]
+
+condition:
+  # DECISION (dry run, 2026-09-30, inherited from the POTS project): `condition` = the patient
+  # POPULATION the paper studied, never the condition a finding informs.
+  semantics: population
+  semantics_statement: >-
+    `condition` names the patient POPULATION the paper studied. A collagen-biology paper with no
+    EDS/HSD cohort is `general` even if it informs EDS; a paper that carries an EDS/HSD label without
+    studying that population is a bucket violation, recorded in the additive annotations table and
+    never corrected in place.
+  definitions_version: "eds dry-run v1 (2026-09-30); EDS_hypermobility inherited from CONDITION_BUCKET_DEFINITIONS.md v1 and split"
+  enum:
+    - value: hEDS
+      definition: >-
+        Hypermobile Ehlers-Danlos syndrome as the studied population: cohorts diagnosed under the 2017
+        hEDS criteria, and pre-2017 cohorts the paper labels "EDS hypermobility type" / "EDS type III".
+        Includes hEDS comorbid with POTS, MCAS or GI dysmotility when hEDS is the specific subject.
+        Nearest exclusions: hypermobility spectrum disorder goes to `HSD`; a cohort pooling hEDS and
+        HSD without separate reporting goes to `multiple`; "joint hypermobility syndrome" cohorts
+        without an EDS label go to `hypermobility_unspecified`.
+    - value: HSD
+      definition: >-
+        Hypermobility spectrum disorder (generalized, historical, localized or peripheral HSD, 2017
+        framework) as the studied population. Nearest exclusions: hEDS goes to `hEDS`; a pooled
+        "hEDS/HSD" cohort goes to `multiple`; Beighton-assessed hypermobility without an HSD diagnosis
+        goes to `hypermobility_unspecified`.
+    - value: EDS_other_type
+      definition: >-
+        Any 2017-classification EDS type OTHER than hypermobile, as the studied population, with the
+        type named in `eds_type`: classical (cEDS), classical-like (clEDS), cardiac-valvular (cvEDS),
+        vascular (vEDS), arthrochalasia (aEDS), dermatosparaxis (dEDS), kyphoscoliotic (kEDS), brittle
+        cornea syndrome (BCS), spondylodysplastic (spEDS), musculocontractural (mcEDS), myopathic (mEDS),
+        periodontal (pEDS), or a newer molecularly defined type. Includes single-family and case
+        reports of a named type. Nearest exclusions: hypermobile EDS goes to `hEDS`; a cohort of mixed
+        or unstated EDS type goes to `EDS_unspecified_or_mixed`.
+    - value: EDS_unspecified_or_mixed
+      definition: >-
+        An Ehlers-Danlos cohort whose type is not stated, or that pools several EDS types without
+        reporting them separately (e.g. registry, survey or claims-code "EDS" cohorts). Nearest
+        exclusions: a single named type goes to `hEDS` or `EDS_other_type`; a cohort that ALSO includes
+        HSD or GJH as a separately described group goes to `multiple`.
+    - value: hypermobility_unspecified
+      definition: >-
+        Generalized or joint hypermobility assessed by Beighton score or an equivalent instrument
+        WITHOUT an EDS or HSD diagnosis, including pre-2017 "joint hypermobility syndrome" (JHS/BJHS)
+        cohorts not labelled EDS, and hypermobility studied as a trait in athletes, dancers or
+        general-population samples. Inherited from CONDITION_BUCKET_DEFINITIONS.md v1
+        (EDS_hypermobility: "generalized joint hypermobility assessed by Beighton score WITHOUT an EDS
+        diagnosis"). Nearest exclusion: orthopaedic single-joint laxity/instability with no
+        hypermobility-as-condition question is `general` (and usually topical drift).
+    - value: multiple
+      definition: >-
+        Several listed conditions are subjects of the paper and reported as distinct groups — the
+        typical case is a pooled or side-by-side hEDS and HSD cohort, or an EDS-types comparison that
+        includes hEDS.
+    - value: general
+      definition: >-
+        The correct answer when no listed condition is the paper's subject: connective-tissue or
+        collagen biology without an EDS/HSD cohort, other heritable connective-tissue disorders
+        (Marfan, Loeys-Dietz, osteogenesis imperfecta) studied alone, and comparison groups. A
+        catch-all by design; "too vague" is not a defect.
+  subtype:
+    field: eds_type
+    condition: EDS_other_type
+    values: [classical, classical-like, cardiac-valvular, vascular, arthrochalasia, dermatosparaxis,
+             kyphoscoliotic, brittle cornea syndrome, spondylodysplastic, musculocontractural, myopathic,
+             periodontal, other named type, not specified]
+
+prompt:
+  template: pipeline/prompt_template.txt
+  pathogen_examples: "none typical; record only if the text names one"
+  phenotype_example: "joint hypermobility; skin hyperextensibility; chronic musculoskeletal pain"
+  instrument_examples: "Beighton score, 5-point questionnaire (5PQ), Brighton criteria, COMPASS-31, SF-36"
+  cohort_examples: "EDS Society registry, UK Biobank, HEDGE study, All of Us"
+
+# Stage-3 rule arm (pipeline/screen.py): in-scope anchor regexes over title+abstract.
+screen:
+  rule_anchors:
+    - "Ehlers|Danlos"
+    - "hypermobil"
+    - "Beighton"
+    - "\\bhEDS\\b|\\bvEDS\\b|\\bcEDS\\b|\\bkEDS\\b|\\bclEDS\\b|\\bmcEDS\\b|\\bspEDS\\b|\\bpEDS\\b|\\bdEDS\\b|\\baEDS\\b|\\bcvEDS\\b|\\bmEDS\\b"
+    - "brittle cornea|dermatosparaxis|arthrochalasia|musculocontractural|kyphoscoliotic|spondylodysplastic"
+    - "joint laxity|joint hypermobility syndrome|\\bJHS\\b|\\bBJHS\\b|\\bGJH\\b"
+
+scope:
+  # Left empty on purpose: this dry run exercises the COMPOSED scope path
+  # (python pipeline/config.py render-scope), which the POTS build never used.
+  text: ""
+  topical_drift: >-
+    orthopaedic and sports-medicine single-joint laxity/instability papers (shoulder, patellar, ankle,
+    TMJ) and procedural papers where joint laxity is only a surgical or technical variable (ACL
+    reconstruction technique, shoulder instability repair method, clubfoot Ponseti casting, hallux
+    valgus) with no hypermobility-as-condition, connective-tissue or biomarker question; rare
+    multi-system syndromes where "joint hypermobility" is one incidental phenotype item in a long list
+    and the paper's question is unrelated to connective tissue (unless the syndrome is itself an EDS
+    type or an EDS differential studied comparatively); pure animal-husbandry reports of veterinary
+    EDS not framed as a model of human disease; dental/periodontal papers that mention EDS only in a
+    differential list; materials-science papers using EDS for spectroscopy; sleep-medicine papers
+    using EDS for excessive daytime sleepiness
+
+year_range:
+  start: 1936
+  end: 2018
+
+# Stage-1 draw (pipeline/draw.py). One Europe PMC query per THEME; theme is the unit of
+# off-topic-rate reporting later. Year range, SRC:MED and HAS_ABSTRACT:y are appended by the script.
+draw:
+  source_stream: europepmc
+  themes:
+    heds_hsd: >-
+      (TITLE:"hypermobile Ehlers-Danlos" OR ABSTRACT:"hypermobile Ehlers-Danlos" OR
+       TITLE:"hypermobility spectrum disorder" OR ABSTRACT:"hypermobility spectrum disorder" OR
+       TITLE:"joint hypermobility syndrome" OR ABSTRACT:"joint hypermobility syndrome" OR
+       TITLE:"Ehlers-Danlos syndrome hypermobility type" OR ABSTRACT:"Ehlers-Danlos syndrome hypermobility type" OR
+       TITLE:hEDS OR ABSTRACT:hEDS)
+    eds_other_types: >-
+      (TITLE:"vascular Ehlers-Danlos" OR ABSTRACT:"vascular Ehlers-Danlos" OR
+       TITLE:"classical Ehlers-Danlos" OR ABSTRACT:"classical Ehlers-Danlos" OR
+       TITLE:"classical-like Ehlers-Danlos" OR ABSTRACT:"classical-like Ehlers-Danlos" OR
+       TITLE:"kyphoscoliotic Ehlers-Danlos" OR ABSTRACT:"kyphoscoliotic Ehlers-Danlos" OR
+       TITLE:dermatosparaxis OR ABSTRACT:dermatosparaxis OR TITLE:arthrochalasia OR ABSTRACT:arthrochalasia OR
+       TITLE:"musculocontractural Ehlers-Danlos" OR ABSTRACT:"musculocontractural Ehlers-Danlos" OR
+       TITLE:"spondylodysplastic Ehlers-Danlos" OR ABSTRACT:"spondylodysplastic Ehlers-Danlos" OR
+       TITLE:"brittle cornea syndrome" OR ABSTRACT:"brittle cornea syndrome" OR
+       TITLE:"periodontal Ehlers-Danlos" OR ABSTRACT:"periodontal Ehlers-Danlos" OR
+       TITLE:"cardiac-valvular Ehlers-Danlos" OR ABSTRACT:"cardiac-valvular Ehlers-Danlos" OR
+       TITLE:"myopathic Ehlers-Danlos" OR ABSTRACT:"myopathic Ehlers-Danlos")
+    eds_general: >-
+      (TITLE:"Ehlers-Danlos" OR ABSTRACT:"Ehlers-Danlos")
+    gjh: >-
+      (TITLE:"generalized joint hypermobility" OR ABSTRACT:"generalized joint hypermobility" OR
+       TITLE:"generalised joint hypermobility" OR ABSTRACT:"generalised joint hypermobility" OR
+       TITLE:"Beighton" OR ABSTRACT:"Beighton")
+  # Regexes (case-insensitive, title+abstract) that mark a record as a probable wrong-sense hit.
+  # Records are FLAGGED (query_contamination=true) and KEPT in the roster (draw.py default; on the
+  # dry run 8/10 regex hits were genuine EDS papers). The stage-3 screen adjudicates flagged records.
+  contamination_patterns:
+    - "excessive daytime sleepiness|Epworth"
+    - "energy[- ]dispersive|X-ray spectroscop|electron microscop.{0,40}EDS|EDS (?:mapping|analysis|spectr)"
+    - "Emery[- ]Dreifuss"
+    - "Tukey|honestly significant"
+    - "hydroxysteroid dehydrogenase|\\b\\d+β?-HSD\\b|HSD\\d"
+    - "breast[- ]conserving|Budd[- ]Chiari"
+    # Added 2026-10-07 from tier5_scope_definition.txt and the 2026-10-07 draw (the TITLE:hEDS /
+    # ABSTRACT:hEDS clause is case-insensitive in Europe PMC and returns chemistry/oncology "HEDS").
+    - "hydroxyethyl.{0,3}disulfide|glutaredoxin|HCC early detection"
+    - "ectodermal dysplasia"
+    - "Japanese Hypertension Society|junior high school"
+
+model:
+  # LITERAL id, inherited from the POTS build (recorded in every package METHODS).
+  id: "claude-sonnet-5"
+  max_tokens_fulltext: 32000
+  max_tokens_abstract: 8000
+  max_tokens_screen: 2000
+
+pinned:
+  papers_per_chunk: 50        # calibrated value restored 2026-10-07 (dry run used 25)
+  fetch_pacing_s: 1.5    # TIER 2 OVERRIDE: 5 workers x 1.5 s = 3.3 req/s aggregate == the calibrated 3 x 0.9 s; abstract-only papers cost one search each
+  fetch_attempts: 6
+  n_inflight: 5               # TIER 2 OVERRIDE (2026-10-13): 93% abstract-only roster -> fetch load ~1 search/paper; the 3-worker pacing budget was tuned for full-text-heavy chunks. Tier 1 stays at 3.
+  n_parts_default: 1          # TIER 2 OVERRIDE (2026-10-13): whole-chunk units (<=50 abstract papers ~270k output tokens, far below the 2.0M ceiling); plan_parts() still splits on full-text density (max_fulltext_per_unit 12)
+  max_attempts: 3
+  worker_max_s: 3000
+  collect_slice_s: 120
+  min_yield: 0.60
+  retry_under_yield: false    # TIER 2 (2026-10-13): an under-yield unit that saved its output with blocked<=max_blocked and 0 guard violations is accepted + flagged, never re-dispatched (Tier 1 spent ~0.6M tokens on retries that reproduced the same yield)
+  stall_min_s: 1500
+  warn_blocked: 0.05
+  max_blocked: 0.35
+  min_ft_chars: 2000
+  ft_input_char_cap: 120000
+  llm_concurrency: 8
+  max_fulltext_per_unit: 12   # added on the dry run after chunk 0 (25/25 full text as one unit) hit worker_max_s
+  watchdog_resplit: true
+
+retain_source_text: true
+unescape_source_text: true
+
+tier:
+  number: 2
+  label: "Tier 2 recovery — pre-2019 EDS/HSD papers with no abstract in Europe PMC/PubMed whose abstract was recovered from OpenAlex (2026-10-21); unscreened, every row flagged screen_verdict_uncertain"
+  # EXPLICIT list of every chunk id in eds_tier1_roster.parquet (frozen 2026-10-07; order = theme block,
+  # then pmid asc; the last chunk is partial and is assigned to Tier 1 — see ROSTER_REPORT.md).
+  target_chunks: [160, 161, 162, 163, 164, 165, 166]
+  env_name: python
+
+artifacts:
+  file_prefix: eds_t2r_
+  # Full build started 2026-10-07 ~09:50Z. The dry run (2026-09-30, 75-paper roster) saved eds_chunk_000_part*of3_*
+  # under the same prefix; the pilot's done-detection took them for the full build's chunk 0 and skipped it.
+  build_after: "2026-10-21T17:40:48Z"
+  # roster_vid = eds_tier1_roster.parquet as saved 2026-10-07 (frozen Tier-1 roster; shared papers excluded).
+  roster_vid: 446265fc-1bb0-4538-9c88-d92bb02e2735  # eds_tier2_recovery_roster_v1.parquet (2026-10-21): 323 papers / chunks 160-166
+  # pipeline_vid / prompt_vid unchanged from the dry run: pipeline/pipeline.py and prompt_template.txt were NOT edited.
+  pipeline_vid: "afa47b13-ae5b-474d-926a-19918ba8b527"   # eds_pipeline.py = pipeline/pipeline.py as patched 2026-09-30
+  prompt_vid: "a8fd46b7-07e6-4938-b495-37f919565bc7"     # eds_prompt_rendered.txt (dry run; template unchanged)
+
+package:
+  author: "Magennis, Erin"
+  orcid: "0009-0007-9013-8052"
+  license_code: MIT
+  license_docs: CC-BY-4.0
+  license_data: CC-BY-4.0
+  doi_concept: "10.5281/zenodo.PLACEHOLDER"
+  doi_version: "10.5281/zenodo.PLACEHOLDER"
+  repository: "https://github.com/PLACEHOLDER/eds-findings"
