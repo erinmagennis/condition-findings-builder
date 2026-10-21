@@ -221,7 +221,13 @@ def render_docs(cfg, st, inv, census, screen_summary, draw_report, gate_log, ver
     if screen_summary:
         A("### Screening (two arms)")
         A("")
-        A(f"{screen_summary['n_screened']} papers screened; final verdicts {json.dumps(screen_summary['final'])}; "
+        # 2026-10-21: Tier-2 summaries use `n` (not `n_screened`) and carry a second pass (`final_v2`,
+        # `two_pass_rule`); render both passes when present, never silently drop the second.
+        n_scr = screen_summary.get("n_screened", screen_summary.get("n"))
+        fin = json.dumps(screen_summary["final"])
+        if screen_summary.get("final_v2"):
+            fin += f" (pass 1); after pass 2 (population check, rule: {screen_summary.get('two_pass_rule')}): {json.dumps(screen_summary['final_v2'])}"
+        A(f"{n_scr} papers screened; final verdicts {fin}; "
           f"LLM off-topic calls against a rule-arm anchor flagged for adjudication (extracted, `screen_verdict_uncertain=true`): "
           f"{screen_summary.get('n_llm_offtopic_flagged_not_excluded')}; instrument alarm: {screen_summary['instrument_alarm']['alarm']} "
           f"(see `qa/screen_summary.json`, `scope/`).")
