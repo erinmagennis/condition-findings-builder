@@ -9,8 +9,8 @@ This repository holds no data. The datasets built with it are:
 
 | dataset | repository | scope | size |
 |---|---|---|---|
-| POTS and dysautonomia findings | [pots-findings](https://github.com/erinmagennis/pots-findings) | POTS, dysautonomia and 14 related condition literatures, 2019-2026, five packages | 148,186 findings from 11,519 papers |
-| Ehlers-Danlos and hypermobility findings | [eds-findings](https://github.com/erinmagennis/eds-findings) | EDS and HSD, 1936-2026, four packages | 24,200 findings from 3,558 papers |
+| POTS and dysautonomia findings | [pots-findings](https://github.com/erinmagennis/pots-findings) | POTS, dysautonomia and related condition literatures, 2019-2026, five packages | 148,186 findings from 11,519 papers |
+| Ehlers-Danlos and hypermobility findings | [eds-findings](https://github.com/erinmagennis/eds-findings) | EDS and HSD, papers published 1946-2026, four packages | 24,200 findings from 3,558 papers |
 
 Each dataset package ships the pinned code that produced it; this tree holds the current condition-agnostic
 generation of that code, the runbook, the failure catalogue (`PITFALLS.md`), the schema, and the packaging and
