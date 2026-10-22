@@ -308,7 +308,7 @@ class Docs:
         L.append(f"`authority_verified_retrospective` with the match mode recorded ({', '.join(f'{k} {fmt(v)}' for k, v in sorted(m['match_modes'].items()))}); **{fmt(m['replaced_rows'])} ids were replaced** by the id the")
         L.append(f"entity name resolves to (exact label or authority synonym; `ontology_id_source` says so); **{fmt(m['withheld_rows'])} were withheld** (`id_withheld_unverified_v1.2`:")
         L.append("the id denoted a different entity and the name did not resolve). The original model id is preserved on every affected row in")
-        L.append("`ontology_id_v11_model_emitted`. Nothing else changed: no row was added or removed and no other column was edited."); L.append("")
+        L.append("`ontology_id_v11_model_emitted`; on replaced rows `entity_ontology_label` / `ontology_label_final` carry the NEW id's label, fetched by id from the authority. Nothing else changed: no row was added or removed and no other column was edited."); L.append("")
         if m["model_ids_denoting_entity_pct"] is not None:
             L.append(f"Measured on this package's full population: **{m['model_ids_denoting_entity_pct']}% of the model-emitted ids denoted their entity**; the")
             L.append("rest existed but pointed at a neighbouring gene, a related compound or a sibling concept — near-miss assignment, not fabrication.")
