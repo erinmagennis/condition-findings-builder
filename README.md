@@ -1,4 +1,4 @@
-# condition-corpus-builder
+# condition-findings-builder
 
 The **method** behind the POTS/dysautonomia findings corpus (148,186 machine-extracted findings
 from 11,519 papers, five self-contained data packages), exported as a standalone, forkable

@@ -1,4 +1,4 @@
-# condition-corpus-builder — CONFIG TEMPLATE
+# condition-findings-builder — CONFIG TEMPLATE
 #
 # Copy to config/<area_slug>.yaml, fill every field, then:
 #     python pipeline/config.py validate  config/<area_slug>.yaml

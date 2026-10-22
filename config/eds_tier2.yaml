@@ -1,4 +1,4 @@
-# condition-corpus-builder — TIER-2 config (pre-2019 universe, 1936-2018). Copy of config/eds.yaml with ONLY
+# condition-findings-builder — TIER-2 config (pre-2019 universe, 1936-2018). Copy of config/eds.yaml with ONLY
 # tier.number/label, year_range, tier.target_chunks, artifacts.file_prefix/build_after/roster_vid changed.
 # (eds-findings, sibling of pots-findings).
 #

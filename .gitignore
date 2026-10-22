@@ -4,3 +4,7 @@ __pycache__/
 *.tar.gz
 prompt_rendered.txt
 scope_rendered.txt
+
+# macOS resource forks
+._*
+.DS_Store

@@ -1,6 +1,6 @@
 # PITFALLS — the failure catalogue
 
-Part of `condition-corpus-builder`. Read this before dispatching anything expensive. Every entry
+Part of `condition-findings-builder`. Read this before dispatching anything expensive. Every entry
 happened on the POTS build. Ordered by how much work the mistake cost.
 
 ## 1 · Orchestration and dispatch

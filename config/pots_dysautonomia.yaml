@@ -1,4 +1,4 @@
-# condition-corpus-builder — the POTS/dysautonomia build's ACTUAL values.
+# condition-findings-builder — the POTS/dysautonomia build's ACTUAL values.
 #
 # Extracted 2026-09-16 from the Tier-4 generation of the pipeline
 # (tier4_prompt.txt, tier4_scope_definition.txt, tier4_pipeline.py, tier4_driver.py) and

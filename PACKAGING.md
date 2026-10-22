@@ -1,6 +1,6 @@
 # PACKAGING — self-contained deposit packages
 
-Part of `condition-corpus-builder`. The goal: a reader downloads **one folder**, has everything, and can re-derive every number in the
+Part of `condition-findings-builder`. The goal: a reader downloads **one folder**, has everything, and can re-derive every number in the
 documentation from the shipped data without a network connection. The prior build produced five
 such packages (220 files / 102.6 MB, verified by opening the archive) from one corpus. They are
 built and verifiable but **not yet deposited** — ten of their eleven citation/metadata files still

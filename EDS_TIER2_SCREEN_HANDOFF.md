@@ -47,10 +47,10 @@ Rule (fixed, population_check.combine): exclude ONLY where pass-1 LLM off_topic 
 ### Unit 3R
 ```
 You are SCREEN UNIT 3R of 17 (stage 3, two-arm screen) for the EDS Tier-2 (pre-2019) corpus build. Do exactly this; no extraction, no extra analysis.
-1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-corpus-builder/). Read pipeline/screen.py's docstring.
+1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-findings-builder/). Read pipeline/screen.py's docstring.
 2. In the `python` tool (environment='python'):
-   import sys; sys.path.insert(0, 'condition-corpus-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
-   cfg = ccfg.load_config('condition-corpus-builder/config/eds_tier2.yaml', warn=None)
+   import sys; sys.path.insert(0, 'condition-findings-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
+   cfg = ccfg.load_config('condition-findings-builder/config/eds_tier2.yaml', warn=None)
    ro = pd.read_parquet('{{artifact:9895e8f4-766a-429b-b708-f44f2c387e54}}'); rt = pd.read_csv('{{artifact:7e2135eb-951f-4ef5-a188-17606110b574}}', dtype={'pmid': str}); sub = ro[ro.pmid.astype(str).isin(rt.pmid)].copy()
    assert len(sub) == 111; df, summary = cscreen.run_screen(host, cfg, sub, out_prefix='screen_eds_t2_unit3R', max_concurrency=8)
    ONE model call per paper (111 calls, max_tokens 2000, model from the config = claude-sonnet-5). Do not raise concurrency; do not change the prompt; do not re-run if the first run completed. If any row has llm_error, list those pmids in your output (they get a retry unit; never invent a verdict).
@@ -62,10 +62,10 @@ Rules: flag, never repair; every count with its denominator; no publishing; if a
 ### Unit 4
 ```
 You are SCREEN UNIT 4 of 17 (stage 3, two-arm screen) for the EDS Tier-2 (pre-2019) corpus build. Do exactly this; no extraction, no extra analysis.
-1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-corpus-builder/). Read pipeline/screen.py's docstring.
+1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-findings-builder/). Read pipeline/screen.py's docstring.
 2. In the `python` tool (environment='python'):
-   import sys; sys.path.insert(0, 'condition-corpus-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
-   cfg = ccfg.load_config('condition-corpus-builder/config/eds_tier2.yaml', warn=None)
+   import sys; sys.path.insert(0, 'condition-findings-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
+   cfg = ccfg.load_config('condition-findings-builder/config/eds_tier2.yaml', warn=None)
    ro = pd.read_parquet('{{artifact:9895e8f4-766a-429b-b708-f44f2c387e54}}'); sub = ro[ro.chunk_id.isin([63, 64, 65, 66, 67, 68])].copy()
    assert len(sub) == 236; df, summary = cscreen.run_screen(host, cfg, sub, out_prefix='screen_eds_t2_unit4', max_concurrency=8)
    ONE model call per paper (236 calls, max_tokens 2000, model from the config = claude-sonnet-5). Do not raise concurrency; do not change the prompt; do not re-run if the first run completed. If any row has llm_error, list those pmids in your output (they get a retry unit; never invent a verdict).
@@ -77,10 +77,10 @@ Rules: flag, never repair; every count with its denominator; no publishing; if a
 ### Unit 5
 ```
 You are SCREEN UNIT 5 of 17 (stage 3, two-arm screen) for the EDS Tier-2 (pre-2019) corpus build. Do exactly this; no extraction, no extra analysis.
-1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-corpus-builder/). Read pipeline/screen.py's docstring.
+1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-findings-builder/). Read pipeline/screen.py's docstring.
 2. In the `python` tool (environment='python'):
-   import sys; sys.path.insert(0, 'condition-corpus-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
-   cfg = ccfg.load_config('condition-corpus-builder/config/eds_tier2.yaml', warn=None)
+   import sys; sys.path.insert(0, 'condition-findings-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
+   cfg = ccfg.load_config('condition-findings-builder/config/eds_tier2.yaml', warn=None)
    ro = pd.read_parquet('{{artifact:9895e8f4-766a-429b-b708-f44f2c387e54}}'); sub = ro[ro.chunk_id.isin([69, 70, 71, 72, 73, 74])].copy()
    assert len(sub) == 241; df, summary = cscreen.run_screen(host, cfg, sub, out_prefix='screen_eds_t2_unit5', max_concurrency=8)
    ONE model call per paper (241 calls, max_tokens 2000, model from the config = claude-sonnet-5). Do not raise concurrency; do not change the prompt; do not re-run if the first run completed. If any row has llm_error, list those pmids in your output (they get a retry unit; never invent a verdict).
@@ -92,10 +92,10 @@ Rules: flag, never repair; every count with its denominator; no publishing; if a
 ### Unit 6
 ```
 You are SCREEN UNIT 6 of 17 (stage 3, two-arm screen) for the EDS Tier-2 (pre-2019) corpus build. Do exactly this; no extraction, no extra analysis.
-1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-corpus-builder/). Read pipeline/screen.py's docstring.
+1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-findings-builder/). Read pipeline/screen.py's docstring.
 2. In the `python` tool (environment='python'):
-   import sys; sys.path.insert(0, 'condition-corpus-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
-   cfg = ccfg.load_config('condition-corpus-builder/config/eds_tier2.yaml', warn=None)
+   import sys; sys.path.insert(0, 'condition-findings-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
+   cfg = ccfg.load_config('condition-findings-builder/config/eds_tier2.yaml', warn=None)
    ro = pd.read_parquet('{{artifact:9895e8f4-766a-429b-b708-f44f2c387e54}}'); sub = ro[ro.chunk_id.isin([75, 76, 77, 78, 79, 80])].copy()
    assert len(sub) == 218; df, summary = cscreen.run_screen(host, cfg, sub, out_prefix='screen_eds_t2_unit6', max_concurrency=8)
    ONE model call per paper (218 calls, max_tokens 2000, model from the config = claude-sonnet-5). Do not raise concurrency; do not change the prompt; do not re-run if the first run completed. If any row has llm_error, list those pmids in your output (they get a retry unit; never invent a verdict).
@@ -107,10 +107,10 @@ Rules: flag, never repair; every count with its denominator; no publishing; if a
 ### Unit 7
 ```
 You are SCREEN UNIT 7 of 17 (stage 3, two-arm screen) for the EDS Tier-2 (pre-2019) corpus build. Do exactly this; no extraction, no extra analysis.
-1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-corpus-builder/). Read pipeline/screen.py's docstring.
+1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-findings-builder/). Read pipeline/screen.py's docstring.
 2. In the `python` tool (environment='python'):
-   import sys; sys.path.insert(0, 'condition-corpus-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
-   cfg = ccfg.load_config('condition-corpus-builder/config/eds_tier2.yaml', warn=None)
+   import sys; sys.path.insert(0, 'condition-findings-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
+   cfg = ccfg.load_config('condition-findings-builder/config/eds_tier2.yaml', warn=None)
    ro = pd.read_parquet('{{artifact:9895e8f4-766a-429b-b708-f44f2c387e54}}'); sub = ro[ro.chunk_id.isin([81, 82, 83, 84, 85])].copy()
    assert len(sub) == 221; df, summary = cscreen.run_screen(host, cfg, sub, out_prefix='screen_eds_t2_unit7', max_concurrency=8)
    ONE model call per paper (221 calls, max_tokens 2000, model from the config = claude-sonnet-5). Do not raise concurrency; do not change the prompt; do not re-run if the first run completed. If any row has llm_error, list those pmids in your output (they get a retry unit; never invent a verdict).
@@ -122,10 +122,10 @@ Rules: flag, never repair; every count with its denominator; no publishing; if a
 ### Unit 8
 ```
 You are SCREEN UNIT 8 of 17 (stage 3, two-arm screen) for the EDS Tier-2 (pre-2019) corpus build. Do exactly this; no extraction, no extra analysis.
-1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-corpus-builder/). Read pipeline/screen.py's docstring.
+1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-findings-builder/). Read pipeline/screen.py's docstring.
 2. In the `python` tool (environment='python'):
-   import sys; sys.path.insert(0, 'condition-corpus-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
-   cfg = ccfg.load_config('condition-corpus-builder/config/eds_tier2.yaml', warn=None)
+   import sys; sys.path.insert(0, 'condition-findings-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
+   cfg = ccfg.load_config('condition-findings-builder/config/eds_tier2.yaml', warn=None)
    ro = pd.read_parquet('{{artifact:9895e8f4-766a-429b-b708-f44f2c387e54}}'); sub = ro[ro.chunk_id.isin([86, 87, 88, 89, 90])].copy()
    assert len(sub) == 218; df, summary = cscreen.run_screen(host, cfg, sub, out_prefix='screen_eds_t2_unit8', max_concurrency=8)
    ONE model call per paper (218 calls, max_tokens 2000, model from the config = claude-sonnet-5). Do not raise concurrency; do not change the prompt; do not re-run if the first run completed. If any row has llm_error, list those pmids in your output (they get a retry unit; never invent a verdict).
@@ -137,10 +137,10 @@ Rules: flag, never repair; every count with its denominator; no publishing; if a
 ### Unit 9
 ```
 You are SCREEN UNIT 9 of 17 (stage 3, two-arm screen) for the EDS Tier-2 (pre-2019) corpus build. Do exactly this; no extraction, no extra analysis.
-1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-corpus-builder/). Read pipeline/screen.py's docstring.
+1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-findings-builder/). Read pipeline/screen.py's docstring.
 2. In the `python` tool (environment='python'):
-   import sys; sys.path.insert(0, 'condition-corpus-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
-   cfg = ccfg.load_config('condition-corpus-builder/config/eds_tier2.yaml', warn=None)
+   import sys; sys.path.insert(0, 'condition-findings-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
+   cfg = ccfg.load_config('condition-findings-builder/config/eds_tier2.yaml', warn=None)
    ro = pd.read_parquet('{{artifact:9895e8f4-766a-429b-b708-f44f2c387e54}}'); sub = ro[ro.chunk_id.isin([91, 92, 93, 94, 95, 96])].copy()
    assert len(sub) == 250; df, summary = cscreen.run_screen(host, cfg, sub, out_prefix='screen_eds_t2_unit9', max_concurrency=8)
    ONE model call per paper (250 calls, max_tokens 2000, model from the config = claude-sonnet-5). Do not raise concurrency; do not change the prompt; do not re-run if the first run completed. If any row has llm_error, list those pmids in your output (they get a retry unit; never invent a verdict).
@@ -152,10 +152,10 @@ Rules: flag, never repair; every count with its denominator; no publishing; if a
 ### Unit 10
 ```
 You are SCREEN UNIT 10 of 17 (stage 3, two-arm screen) for the EDS Tier-2 (pre-2019) corpus build. Do exactly this; no extraction, no extra analysis.
-1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-corpus-builder/). Read pipeline/screen.py's docstring.
+1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-findings-builder/). Read pipeline/screen.py's docstring.
 2. In the `python` tool (environment='python'):
-   import sys; sys.path.insert(0, 'condition-corpus-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
-   cfg = ccfg.load_config('condition-corpus-builder/config/eds_tier2.yaml', warn=None)
+   import sys; sys.path.insert(0, 'condition-findings-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
+   cfg = ccfg.load_config('condition-findings-builder/config/eds_tier2.yaml', warn=None)
    ro = pd.read_parquet('{{artifact:9895e8f4-766a-429b-b708-f44f2c387e54}}'); sub = ro[ro.chunk_id.isin([97, 98, 99, 100, 101])].copy()
    assert len(sub) == 210; df, summary = cscreen.run_screen(host, cfg, sub, out_prefix='screen_eds_t2_unit10', max_concurrency=8)
    ONE model call per paper (210 calls, max_tokens 2000, model from the config = claude-sonnet-5). Do not raise concurrency; do not change the prompt; do not re-run if the first run completed. If any row has llm_error, list those pmids in your output (they get a retry unit; never invent a verdict).
@@ -167,10 +167,10 @@ Rules: flag, never repair; every count with its denominator; no publishing; if a
 ### Unit 11
 ```
 You are SCREEN UNIT 11 of 17 (stage 3, two-arm screen) for the EDS Tier-2 (pre-2019) corpus build. Do exactly this; no extraction, no extra analysis.
-1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-corpus-builder/). Read pipeline/screen.py's docstring.
+1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-findings-builder/). Read pipeline/screen.py's docstring.
 2. In the `python` tool (environment='python'):
-   import sys; sys.path.insert(0, 'condition-corpus-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
-   cfg = ccfg.load_config('condition-corpus-builder/config/eds_tier2.yaml', warn=None)
+   import sys; sys.path.insert(0, 'condition-findings-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
+   cfg = ccfg.load_config('condition-findings-builder/config/eds_tier2.yaml', warn=None)
    ro = pd.read_parquet('{{artifact:9895e8f4-766a-429b-b708-f44f2c387e54}}'); sub = ro[ro.chunk_id.isin([102, 103, 104, 105, 106, 107])].copy()
    assert len(sub) == 240; df, summary = cscreen.run_screen(host, cfg, sub, out_prefix='screen_eds_t2_unit11', max_concurrency=8)
    ONE model call per paper (240 calls, max_tokens 2000, model from the config = claude-sonnet-5). Do not raise concurrency; do not change the prompt; do not re-run if the first run completed. If any row has llm_error, list those pmids in your output (they get a retry unit; never invent a verdict).
@@ -182,10 +182,10 @@ Rules: flag, never repair; every count with its denominator; no publishing; if a
 ### Unit 12
 ```
 You are SCREEN UNIT 12 of 17 (stage 3, two-arm screen) for the EDS Tier-2 (pre-2019) corpus build. Do exactly this; no extraction, no extra analysis.
-1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-corpus-builder/). Read pipeline/screen.py's docstring.
+1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-findings-builder/). Read pipeline/screen.py's docstring.
 2. In the `python` tool (environment='python'):
-   import sys; sys.path.insert(0, 'condition-corpus-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
-   cfg = ccfg.load_config('condition-corpus-builder/config/eds_tier2.yaml', warn=None)
+   import sys; sys.path.insert(0, 'condition-findings-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
+   cfg = ccfg.load_config('condition-findings-builder/config/eds_tier2.yaml', warn=None)
    ro = pd.read_parquet('{{artifact:9895e8f4-766a-429b-b708-f44f2c387e54}}'); sub = ro[ro.chunk_id.isin([108, 109, 110, 111, 112])].copy()
    assert len(sub) == 220; df, summary = cscreen.run_screen(host, cfg, sub, out_prefix='screen_eds_t2_unit12', max_concurrency=8)
    ONE model call per paper (220 calls, max_tokens 2000, model from the config = claude-sonnet-5). Do not raise concurrency; do not change the prompt; do not re-run if the first run completed. If any row has llm_error, list those pmids in your output (they get a retry unit; never invent a verdict).
@@ -197,10 +197,10 @@ Rules: flag, never repair; every count with its denominator; no publishing; if a
 ### Unit 13
 ```
 You are SCREEN UNIT 13 of 17 (stage 3, two-arm screen) for the EDS Tier-2 (pre-2019) corpus build. Do exactly this; no extraction, no extra analysis.
-1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-corpus-builder/). Read pipeline/screen.py's docstring.
+1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-findings-builder/). Read pipeline/screen.py's docstring.
 2. In the `python` tool (environment='python'):
-   import sys; sys.path.insert(0, 'condition-corpus-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
-   cfg = ccfg.load_config('condition-corpus-builder/config/eds_tier2.yaml', warn=None)
+   import sys; sys.path.insert(0, 'condition-findings-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
+   cfg = ccfg.load_config('condition-findings-builder/config/eds_tier2.yaml', warn=None)
    ro = pd.read_parquet('{{artifact:9895e8f4-766a-429b-b708-f44f2c387e54}}'); sub = ro[ro.chunk_id.isin([113, 114, 115, 116, 117])].copy()
    assert len(sub) == 220; df, summary = cscreen.run_screen(host, cfg, sub, out_prefix='screen_eds_t2_unit13', max_concurrency=8)
    ONE model call per paper (220 calls, max_tokens 2000, model from the config = claude-sonnet-5). Do not raise concurrency; do not change the prompt; do not re-run if the first run completed. If any row has llm_error, list those pmids in your output (they get a retry unit; never invent a verdict).
@@ -212,10 +212,10 @@ Rules: flag, never repair; every count with its denominator; no publishing; if a
 ### Unit 14
 ```
 You are SCREEN UNIT 14 of 17 (stage 3, two-arm screen) for the EDS Tier-2 (pre-2019) corpus build. Do exactly this; no extraction, no extra analysis.
-1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-corpus-builder/). Read pipeline/screen.py's docstring.
+1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-findings-builder/). Read pipeline/screen.py's docstring.
 2. In the `python` tool (environment='python'):
-   import sys; sys.path.insert(0, 'condition-corpus-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
-   cfg = ccfg.load_config('condition-corpus-builder/config/eds_tier2.yaml', warn=None)
+   import sys; sys.path.insert(0, 'condition-findings-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
+   cfg = ccfg.load_config('condition-findings-builder/config/eds_tier2.yaml', warn=None)
    ro = pd.read_parquet('{{artifact:9895e8f4-766a-429b-b708-f44f2c387e54}}'); sub = ro[ro.chunk_id.isin([118, 119, 120, 121, 122])].copy()
    assert len(sub) == 232; df, summary = cscreen.run_screen(host, cfg, sub, out_prefix='screen_eds_t2_unit14', max_concurrency=8)
    ONE model call per paper (232 calls, max_tokens 2000, model from the config = claude-sonnet-5). Do not raise concurrency; do not change the prompt; do not re-run if the first run completed. If any row has llm_error, list those pmids in your output (they get a retry unit; never invent a verdict).
@@ -227,10 +227,10 @@ Rules: flag, never repair; every count with its denominator; no publishing; if a
 ### Unit 15
 ```
 You are SCREEN UNIT 15 of 17 (stage 3, two-arm screen) for the EDS Tier-2 (pre-2019) corpus build. Do exactly this; no extraction, no extra analysis.
-1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-corpus-builder/). Read pipeline/screen.py's docstring.
+1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-findings-builder/). Read pipeline/screen.py's docstring.
 2. In the `python` tool (environment='python'):
-   import sys; sys.path.insert(0, 'condition-corpus-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
-   cfg = ccfg.load_config('condition-corpus-builder/config/eds_tier2.yaml', warn=None)
+   import sys; sys.path.insert(0, 'condition-findings-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
+   cfg = ccfg.load_config('condition-findings-builder/config/eds_tier2.yaml', warn=None)
    ro = pd.read_parquet('{{artifact:9895e8f4-766a-429b-b708-f44f2c387e54}}'); sub = ro[ro.chunk_id.isin([123, 124, 125, 126, 127])].copy()
    assert len(sub) == 227; df, summary = cscreen.run_screen(host, cfg, sub, out_prefix='screen_eds_t2_unit15', max_concurrency=8)
    ONE model call per paper (227 calls, max_tokens 2000, model from the config = claude-sonnet-5). Do not raise concurrency; do not change the prompt; do not re-run if the first run completed. If any row has llm_error, list those pmids in your output (they get a retry unit; never invent a verdict).
@@ -242,10 +242,10 @@ Rules: flag, never repair; every count with its denominator; no publishing; if a
 ### Unit 16
 ```
 You are SCREEN UNIT 16 of 17 (stage 3, two-arm screen) for the EDS Tier-2 (pre-2019) corpus build. Do exactly this; no extraction, no extra analysis.
-1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-corpus-builder/). Read pipeline/screen.py's docstring.
+1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-findings-builder/). Read pipeline/screen.py's docstring.
 2. In the `python` tool (environment='python'):
-   import sys; sys.path.insert(0, 'condition-corpus-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
-   cfg = ccfg.load_config('condition-corpus-builder/config/eds_tier2.yaml', warn=None)
+   import sys; sys.path.insert(0, 'condition-findings-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
+   cfg = ccfg.load_config('condition-findings-builder/config/eds_tier2.yaml', warn=None)
    ro = pd.read_parquet('{{artifact:9895e8f4-766a-429b-b708-f44f2c387e54}}'); sub = ro[ro.chunk_id.isin([128, 129, 130, 131, 132])].copy()
    assert len(sub) == 224; df, summary = cscreen.run_screen(host, cfg, sub, out_prefix='screen_eds_t2_unit16', max_concurrency=8)
    ONE model call per paper (224 calls, max_tokens 2000, model from the config = claude-sonnet-5). Do not raise concurrency; do not change the prompt; do not re-run if the first run completed. If any row has llm_error, list those pmids in your output (they get a retry unit; never invent a verdict).
@@ -257,10 +257,10 @@ Rules: flag, never repair; every count with its denominator; no publishing; if a
 ### Unit 17
 ```
 You are SCREEN UNIT 17 of 17 (stage 3, two-arm screen) for the EDS Tier-2 (pre-2019) corpus build. Do exactly this; no extraction, no extra analysis.
-1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-corpus-builder/). Read pipeline/screen.py's docstring.
+1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version; folder condition-findings-builder/). Read pipeline/screen.py's docstring.
 2. In the `python` tool (environment='python'):
-   import sys; sys.path.insert(0, 'condition-corpus-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
-   cfg = ccfg.load_config('condition-corpus-builder/config/eds_tier2.yaml', warn=None)
+   import sys; sys.path.insert(0, 'condition-findings-builder/pipeline'); import config as ccfg, screen as cscreen, pandas as pd
+   cfg = ccfg.load_config('condition-findings-builder/config/eds_tier2.yaml', warn=None)
    ro = pd.read_parquet('{{artifact:9895e8f4-766a-429b-b708-f44f2c387e54}}'); sub = ro[ro.chunk_id.isin([133, 134, 135, 136, 137])].copy()
    assert len(sub) == 189; df, summary = cscreen.run_screen(host, cfg, sub, out_prefix='screen_eds_t2_unit17', max_concurrency=8)
    ONE model call per paper (189 calls, max_tokens 2000, model from the config = claude-sonnet-5). Do not raise concurrency; do not change the prompt; do not re-run if the first run completed. If any row has llm_error, list those pmids in your output (they get a retry unit; never invent a verdict).
@@ -274,8 +274,8 @@ Rules: flag, never repair; every count with its denominator; no publishing; if a
 You are POPULATION-CHECK UNIT {k} of {K} (stage 3b) for the EDS Tier-2 corpus build. Do exactly this; no extraction, no extra analysis.
 1. Untar the method repo (artifact d8a146bc-4cc5-4bee-bb16-8e628e9c708c, latest version). Read pipeline/population_check.py's docstring.
 2. In the `python` tool (environment='python'):
-   import sys; sys.path.insert(0,'condition-corpus-builder/pipeline'); import config as ccfg, population_check as pc, pandas as pd
-   cfg = ccfg.load_config('condition-corpus-builder/config/eds_tier2.yaml', warn=None)
+   import sys; sys.path.insert(0,'condition-findings-builder/pipeline'); import config as ccfg, population_check as pc, pandas as pd
+   cfg = ccfg.load_config('condition-findings-builder/config/eds_tier2.yaml', warn=None)
    u = pd.read_parquet('{{artifact:<screen_eds_t2_pass1_uncertain.parquet vid>}}'); sub = u[u.chunk_id.isin({chunk_ids})].copy(); assert len(sub) == {n}
    df, summary = pc.run_population_check(host, cfg, sub, out_prefix='popcheck_t2_unit{k}', max_concurrency=8)
    One model call per paper, max_tokens 2000, the config's model. Do not change the prompt; do not re-run a completed run.

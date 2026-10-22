@@ -81,7 +81,7 @@ network call, no re-matching, no fuzzy step: the (name -> id) decision is never 
 """
 import json, re, time, urllib.parse, urllib.request
 
-RESOLVER_VERSION = "condition-corpus-builder/resolver@1"   # was "tier4_resolver@1"; the stamp is
+RESOLVER_VERSION = "condition-corpus-builder/resolver@1"  # provenance stamp stored in caches and QA records; kept verbatim after the 2026-10-22 rename to condition-findings-builder   # was "tier4_resolver@1"; the stamp is
 # WRITTEN into cache rows and never compared, so caches under the old stamp load unchanged.
 OLS4 = "https://www.ebi.ac.uk/ols4/api/search"
 UNIPROT = "https://rest.uniprot.org/uniprotkb/search"

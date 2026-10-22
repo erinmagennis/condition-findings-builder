@@ -275,7 +275,7 @@ def render_docs(cfg, st, inv, census, screen_summary, draw_report, gate_log, ver
 
     # METHODS
     pin = cfg["pinned"]
-    M = ["# METHODS", "", f"Method repository: `condition-corpus-builder` (pipeline generation: Tier-4 code made condition-agnostic; config `config/{os.path.basename(cfg['_path'])}`).", "",
+    M = ["# METHODS", "", f"Method repository: `condition-findings-builder` (pipeline generation: Tier-4 code made condition-agnostic; config `config/{os.path.basename(cfg['_path'])}`).", "",
          f"**Extraction model (literal id): `{cfg['model']['id']}`** — max_tokens full text {cfg['model']['max_tokens_fulltext']}, abstract {cfg['model']['max_tokens_abstract']}, screen {cfg['model']['max_tokens_screen']}.", "",
          "## Pinned parameters", "", _tbl([(k, v) for k, v in pin.items()], ["parameter", "value"]), "",
          "Deviations from the calibrated block (validator warnings at load): " + ("; ".join(cfg.get("_warnings") or []) or "none") + ".", "",

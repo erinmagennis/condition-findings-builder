@@ -1,4 +1,4 @@
-# condition-corpus-builder — TIER-2 config (pre-2019 universe, 1936-2018). Copy of config/eds.yaml with ONLY
+# condition-findings-builder — TIER-2 config (pre-2019 universe, 1936-2018). Copy of config/eds.yaml with ONLY
 # TIER-2 RECOVERY (2026-10-21): eds_tier2.yaml with chunks 160-166, prefix eds_t2r_, roster = title-only papers whose abstract was recovered from OpenAlex (abstract_source column). Not screened (abstracts did not exist at screen time): screen_final_verdict=unscreened_recovery, screen_verdict_uncertain=true on every row.
 # (eds-findings, sibling of pots-findings).
 #

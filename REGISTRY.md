@@ -1,6 +1,6 @@
 # REGISTRY — the cross-corpus paper registry
 
-Part of `condition-corpus-builder`. Code: `pipeline/registry.py`; tests: `pipeline/registry_tests.py`
+Part of `condition-findings-builder`. Code: `pipeline/registry.py`; tests: `pipeline/registry_tests.py`
 (every rule below has a planted violation there); config: the `registry:` block of
 `config/TEMPLATE.yaml`. Schema version `registry-v0 (2026-10-07)`.
 

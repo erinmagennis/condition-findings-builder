@@ -1,4 +1,4 @@
-# condition-corpus-builder — TIER-2 config (pre-2019 universe, 1936-2018). Copy of config/eds.yaml with ONLY
+# condition-findings-builder — TIER-2 config (pre-2019 universe, 1936-2018). Copy of config/eds.yaml with ONLY
 # NOSOLOGY SUPPLEMENT (2026-10-21): eds_tier2.yaml with tier 3, year_range 1970-2026, chunks 150-151, prefix eds_sup_. Roster = the 53 MeSH-"Ehlers-Danlos Syndrome"-indexed papers the population screen excluded whose scope_class is eds_2017, eds_historical_reclassified or adjacent_hctd (95 mention_only papers stay excluded, class recorded). See NOSOLOGY.md.
 # (eds-findings, sibling of pots-findings).
 #

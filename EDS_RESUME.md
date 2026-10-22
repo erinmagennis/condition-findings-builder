@@ -4,7 +4,7 @@ If this build is halted (usage cap, kernel death, closed laptop), a fresh sessio
 Nothing in memory is needed: the driver recomputes `done` from the artifact store.
 
 ## Pinned inputs (artifact version ids — full UUIDs)
-- method repo (v7, registry + full-build config merged): condition-corpus-builder.tar.gz = f067ddbf-737a-494a-9b28-1db38290eda9
+- method repo (v7, registry + full-build config merged): condition-findings-builder.tar.gz = f067ddbf-737a-494a-9b28-1db38290eda9
   (config/eds.yaml in the WORKSPACE has since been re-pinned to roster v2 and 30 chunks; the tarball is re-saved after the screen → check the latest version)
 - roster v2 (1,463 papers, 30 chunks; chunks 0-24 = roster v1 frozen order, 25-29 = the 223 POTS no-yield papers, round-robin title-only):
   eds_tier1_roster_v2.parquet = 3df07eb6-2398-4bb8-8912-84ac7f6aa826 ; report 06bbbf0f-7a96-4754-99f0-4a11a4761dbc
@@ -14,7 +14,7 @@ Nothing in memory is needed: the driver recomputes `done` from the artifact stor
 - registry v0: paper_registry_v0.parquet = 7f765114-3e5a-4225-9320-51e435826c3c (rebuild as v1 after extraction)
 
 ## Resume procedure
-1. Untar the latest condition-corpus-builder.tar.gz; `python pipeline/config.py export-json config/eds.yaml > config/eds.json`.
+1. Untar the latest condition-findings-builder.tar.gz; `python pipeline/config.py export-json config/eds.yaml > config/eds.json`.
 2. In the orchestration kernel: CORPUS_CONFIG=config/eds.json; import driver as D; roster plan rows = JSON list of (chunk_id, pmid, pmcid, is_oa) from the pinned roster.
 3. `D.done_units(host, set(D.TARGET_CHUNKS))` lists finished chunks (artifact filenames eds_chunk_NNN[_partIofN]_findings.parquet). Dispatch ONLY the next wave:
    `D.run(host, D.build_task, D.gate, <wave chunk ids>, split_all=True, roster_df=plan_rows, run_tag='wave<k>')`.
@@ -108,7 +108,7 @@ resolve_stage over merged table (cache 5d8f69b1-db10-4252-8e55-45089669fd10 seed
 - NEXT when the human worksheets return: (1) FC.analyze_agreement(judge, human_df) on the calibration subset; (2) machine-score the extendable questions over the 200 (delegate — ~200 judge calls, over the 2.0M per-frame ceiling); (3) per-stratum rates + CIs vs the pre-registered thresholds; (4) exclusion audit rate with CI; (5) rebuild eds-findings-tier2 as v0.1 with §7a/§7b files inside; annotations table for any adjudicated real defects (never edit rows).
 
 ## Update 2026-10-21 (evening) — nosology supplement shipped; claim graph v0; recall check; versioning on disk
-- Git: ~/Projects/science — pots/ (user repo, tag state-2026-10-21), condition-corpus-builder/ (21 backfilled commits + nosology config), eds-findings/ (reports, QA, data, audits, claims; git dirs live in .repos/, pointer .git files created by the user). Commit after every landed piece of work.
+- Git: ~/Projects/science — pots/ (user repo, tag state-2026-10-21), condition-findings-builder/ (21 backfilled commits + nosology config), eds-findings/ (reports, QA, data, audits, claims; git dirs live in .repos/, pointer .git files created by the user). Commit after every landed piece of work.
 - Recall: PubMed MeSH "Ehlers-Danlos Syndrome" 4,142 -> 4,140 in EDS registry ∪ POTS corpus; 1,360 not_extractable (no text); 148 excluded by screen -> scope_class pass (claude-sonnet-5, verbatim spans): eds_2017 5, eds_historical_reclassified 33, adjacent_hctd 15, mention_only 95 (kept excluded, listed).
 - User decision: include the non-mention classes; label nosology explicitly. NOSOLOGY.md (repo root + packages code/) = 2017 classification reference, Berlin/Villefranche type map, scope_class vocabulary. config/eds_supplement.yaml (tier 3, chunks 150-151, prefix eds_sup_, roster 6d10a1d2-7045-4c11-9c6e-715b8b0a3b04).
 - Supplement: 1 wave, 2 units, 742 s, 395,982 output tokens; 343 findings / 45 of 53 papers; census 342/342 traceable (wrong-paper controls 0/342 false positives — 203 abstract-only + 139 full-text, capped by stratum size; the earlier "0/400" in the commit 3c22755 message was wrong); invariants 8/8; authority prefix 0 mismatches; package eds-findings-nosology-supplement-v0 = 1a815935-563a-4271-a2c1-97a1eabe20ce (sha256 f7de48d1…1427; verifier PASS 19/19, 6/6; 49/49 checksums); resolved table 5199136b-976c-4387-b41b-27dc99e92403; registry v3 d8880a0c-4238-4980-bd2a-9cdc92922a70 (12/12; scope_class column).

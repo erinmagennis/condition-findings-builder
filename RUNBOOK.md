@@ -1,6 +1,6 @@
 # RUNBOOK — building a condition corpus, stage by stage
 
-Part of `condition-corpus-builder`. Twelve stages (0–11). Each states what it produces, the gate
+Part of `condition-findings-builder`. Twelve stages (0–11). Each states what it produces, the gate
 that must pass before the next one, and the specific thing that went wrong on the POTS build. Do
 not skip a gate because a stage "obviously" worked — four of the worst defects on that build
 passed every gate that existed at the time.

@@ -3,7 +3,7 @@
 # before resolve_stage.run. 4 shards gave ~2.6-3.2 lookups/s aggregate vs ~0.8/s single-process (8,373 lookups in 40 min, 0 errors).
 # Usage: python scripts/resolve_shard.py <i> <N> [budget_s]   (expects eds_t2_findings_merged_raw.parquet and resolution_cache_snapshot.parquet in cwd; edit paths for other areas)
 import sys, os, time, json, pandas as pd
-sys.path.insert(0, "ccb/condition-corpus-builder/pipeline")
+sys.path.insert(0, "ccb/condition-findings-builder/pipeline")
 import resolver as RS, resolve_stage as RSS
 i, N = int(sys.argv[1]), int(sys.argv[2]); budget_s = float(sys.argv[3]) if len(sys.argv) > 3 else 7200
 SEED = "resolution_cache_snapshot.parquet"; OUT = f"shards/cache_shard{i}.parquet"; os.makedirs("shards", exist_ok=True)

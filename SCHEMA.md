@@ -1,6 +1,6 @@
 # SCHEMA — the extraction contract and prompt template
 
-Part of `condition-corpus-builder`. The schema below is the one that survived four tiers and two
+Part of `condition-findings-builder`. The schema below is the one that survived four tiers and two
 repair passes of the POTS build. The condition enum, its subtype field, the area description and
 the in-prompt examples come from `config/<area>.yaml`; everything else in
 `pipeline/prompt_template.txt` is structural and **kept verbatim** — each clause exists because of a

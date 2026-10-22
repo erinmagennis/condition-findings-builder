@@ -1,6 +1,6 @@
 # FIDELITY — the only instrument that tests whether the science is right
 
-Part of `condition-corpus-builder`. Everything else in this repository verifies **well-formedness**: that a quote is real text from the
+Part of `condition-findings-builder`. Everything else in this repository verifies **well-formedness**: that a quote is real text from the
 right paper, that an identifier denotes its entity, that counts are conserved. All of it can pass
 while a finding misstates what the paper concluded. This is the audit that answers that question,
 and it is the gate on publishing a corpus as anything other than a pointer set.

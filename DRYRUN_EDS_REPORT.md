@@ -1,4 +1,4 @@
-# DRYRUN_EDS_REPORT — condition-corpus-builder on a second condition (EDS/HSD)
+# DRYRUN_EDS_REPORT — condition-findings-builder on a second condition (EDS/HSD)
 
 Date 2026-09-30. Test area: Ehlers-Danlos syndromes (all 2017 types) + hypermobility spectrum disorder,
 2019–2026, Europe PMC. Throwaway corpus; not a deliverable. Purpose: find everything still POTS-specific
@@ -231,7 +231,7 @@ Remaining known gaps, in value order:
 
 ## 5. Artifacts
 
-`config/eds.yaml` (+ `eds.json` twin); patched `condition-corpus-builder.tar.gz` (new version; README
+`config/eds.yaml` (+ `eds.json` twin); patched `condition-findings-builder.tar.gz` (new version; README
 changelog); `DRYRUN-eds-findings-test.tar.gz` (the package; first README line marks it a ~75-paper dry
 run, not a release); `eds_findings_resolved.parquet` (886 rows); `eds_roster.parquet`; QA JSONs
 (`invariants.json`, `quote_census.json`, `resolve_report.json`, `screen_summary.json`, `gate_log.json`,

@@ -82,7 +82,7 @@ Tier 2 is pre-2019 by construction and the POTS corpus's shared-paper window beg
 | eds_tier2_roster_v2.parquet | b0295118-bfd3-439e-8fa3-accdfab4d368 |
 | resolution_cache.parquet (14,385 entries, both tiers) | 7d390f03-b885-4534-ae26-80a975b0cb10 |
 | build_state_t2.json (ledger) | 5d248e7a-7ae8-47b6-8bb9-01c28a4953c5 |
-| condition-corpus-builder.tar.gz (method repo v20; tests 74/74 both configs, registry 42/42, symmetry 12/12) | e13bf5a6-105a-4db6-ad2e-2c9095b0a5e8 |
+| condition-findings-builder.tar.gz (method repo v20; tests 74/74 both configs, registry 42/42, symmetry 12/12) | e13bf5a6-105a-4db6-ad2e-2c9095b0a5e8 |
 
 ## 7. Known gaps and what this build does not claim
 
