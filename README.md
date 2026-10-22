@@ -1,23 +1,29 @@
 # condition-findings-builder
 
-The **method** behind the POTS/dysautonomia findings corpus (148,186 machine-extracted findings
-from 11,519 papers, five self-contained data packages), exported as a standalone, forkable
-repository. Someone starting a grounded literature-findings corpus for a **new condition area** —
-ME/CFS alone, long COVID, a rare-disease cluster — forks this tree, fills **one config file**, and
-runs the stages in `RUNBOOK.md`.
+The method for building a grounded, verifiable findings corpus from the biomedical literature of one condition
+area: retrieve the papers, screen them, extract one row per finding with its verbatim source quote, resolve entity
+names to authority identifiers, run quality checks with negative controls, and package the result so that anyone
+can re-verify it. Fill one config file for a new condition area and run the stages in `RUNBOOK.md`.
 
-This repository holds no data. The data lives in the companion [`pots-findings`](https://github.com/erinmagennis/pots-findings) repository, whose
-five tier packages each ship the *pinned* code that produced them. This tree holds the canonical,
-condition-agnostic generation of that code (the Tier-4 generation, the last and most complete),
-the runbook, the failure catalogue, the schema, the packaging and fidelity protocols, and the
-lessons from the September 2026 audit of the POTS packages.
+This repository holds no data. The datasets built with it are:
+
+| dataset | repository | scope | size |
+|---|---|---|---|
+| POTS and dysautonomia findings | [pots-findings](https://github.com/erinmagennis/pots-findings) | POTS, dysautonomia and 14 related condition literatures, 2019-2026, five packages | 148,186 findings from 11,519 papers |
+| Ehlers-Danlos and hypermobility findings | [eds-findings](https://github.com/erinmagennis/eds-findings) | EDS and HSD, 1936-2026, four packages | 24,200 findings from 3,558 papers |
+
+Each dataset package ships the pinned code that produced it; this tree holds the current condition-agnostic
+generation of that code, the runbook, the failure catalogue (`PITFALLS.md`), the schema, and the packaging and
+fidelity protocols. The project index is [condition-findings](https://github.com/erinmagennis/condition-findings).
+
+Credit: Erin Magennis. Code under MIT, documentation under CC BY 4.0 (see Licence below).
 
 ## The five non-negotiables
 
 Each was paid for on the POTS build; the measured cost is in `PITFALLS.md`.
 
-1. **The model emits names; the pipeline resolves identifiers.** A build that asked for ids got
-   27.7% fabricated. `pipeline/resolver.py` derives every id from the name against the real
+1. **The model emits names; the pipeline resolves identifiers.** A build that asked the model for ids got
+   34.7% of them pointing at a different entity than the one named (full-population lookup, pots-findings v1.2 benchmark). `pipeline/resolver.py` derives every id from the name against the real
    authority, exact label only, and records which authority and which match path.
 2. **Retain the text you extracted from.** Three tiers discarded body text; 108,549 of 148,186 (recomputed from the data at every build; a stale handoff said 108,714)
    rows are permanently uncheckable. `retain_source_text: true` is enforced by the config
@@ -60,7 +66,7 @@ a `condition` bucket without a written definition, `target_chunks` that is not a
 | path | what |
 |---|---|
 | `RUNBOOK.md` | the twelve stages with a gate at each boundary |
-| `PITFALLS.md` | the failure catalogue — read before dispatching anything expensive |
+| `PITFALLS.md` | the failure catalogue: read before dispatching anything expensive |
 | `SCHEMA.md` | the extraction contract, roster contract, template slots, prompt clauses kept verbatim |
 | `PACKAGING.md` | self-contained deposit packages, the verifier, licensing the quotes |
 | `FIDELITY.md` | the human-scored instrument, and how to calibrate an AI scorer before spending human time |
@@ -94,7 +100,7 @@ what you cite for the POTS findings.
 
 ## Changelog
 
-### 2026-09-30 — EDS/HSD dry run (second-condition reusability test)
+### 2026-09-30: EDS/HSD dry run (second-condition reusability test)
 
 A ~75-paper throwaway corpus (Ehlers-Danlos syndromes + HSD, 2019–2026, Europe PMC; 3 chunks of 25,
 stratified full-text-rich / mixed / abstract-heavy) was built end-to-end from `config/eds.yaml` to a
@@ -103,31 +109,31 @@ re-derived, 9/9 invariants, 6/6 planted regressions caught, census 885/886 trace
 wrong-paper false positives). Everything that required editing **code rather than config** is listed
 in `DRYRUN_EDS_REPORT.md` (repository root; also in the dry-run package's `code/`) and summarised here:
 
-* **`pipeline/config.py`** — PyYAML import made lazy; `load_config` accepts a `.json` twin and a new
+* **`pipeline/config.py`**: PyYAML import made lazy; `load_config` accepts a `.json` twin and a new
   `export-json` command writes it. The driver must run in the orchestration kernel (where
   `host.delegate` lives), which is stdlib-only; a module-level `import yaml` made `driver.py`
   unimportable exactly where it has to run. New `artifacts.file_prefix` (default `<slug>_`).
-* **`pipeline/driver.py`** — chunk artifact filenames and the done/archive detectors carry
+* **`pipeline/driver.py`**: chunk artifact filenames and the done/archive detectors carry
   `artifacts.file_prefix`, anchored at both ends. Without it a second area in the same project
   inherited the POTS build's `chunk_000..002_findings.parquet` as "already done" and dispatched
   nothing. Work-based unit sizing (`plan_parts`, `pinned.max_fulltext_per_unit`, default 12) and
   watchdog-reclaim → re-split (`pinned.watchdog_resplit`): a 25-full-text-paper whole unit exceeded
   `WORKER_MAX_S=3000` with nothing saved and the pinned loop re-queued the identical unit twice.
-  Per-run log filenames (`<prefix>gate_log_parts_<run_tag>.json`) — two runs in one directory
+  Per-run log filenames (`<prefix>gate_log_parts_<run_tag>.json`): two runs in one directory
   clobbered the first run's gate log. `run(roster_df=...)` accepts a DataFrame or a plain list of
   dict rows. **The dispatch loop is therefore no longer byte-identical to the pinned Tier-4
   driver**; with `file_prefix: ""` and `watchdog_resplit: false` (the POTS config) it behaves
   identically, and `driver_tests.py` (53 cases, was 40) pins both the legacy and the new behaviour.
-* **`pipeline/pipeline.py`** — `unescape_source()` also strips whitelisted inline HTML/JATS tags
+* **`pipeline/pipeline.py`**: `unescape_source()` also strips whitelisted inline HTML/JATS tags
   (Europe PMC abstracts carry `<i>`, `<sub>`; parsed full text does not); archive/findings filenames
   carry the prefix; roster flag columns (`query_contamination`, `screen_final_verdict`,
   `screen_verdict_uncertain`, `sample_stratum`) ride through to every finding row.
-* **`pipeline/quote_trace.py`** — additive `strip_tags()` / `TAG` / `INLINE_TAG` (one definition,
+* **`pipeline/quote_trace.py`**: additive `strip_tags()` / `TAG` / `INLINE_TAG` (one definition,
   shared with `normalizer_tests.py`, which previously tested a tag stripper the census never used);
-  `normalize()` itself is unchanged. **`pipeline/quote_census.py`** — abstract-only rows are checked
+  `normalize()` itself is unchanged. **`pipeline/quote_census.py`**: abstract-only rows are checked
   against the retained archive (text as handed to the model), roster abstract only as fallback;
   `blocked` is its own stratum; a stratum with <2 papers reports "no control possible" instead of
-  "matcher suspect". **`comparator_symmetry_tests.py`** — 4 tag cases added (12/12).
+  "matcher suspect". **`comparator_symmetry_tests.py`**: 4 tag cases added (12/12).
 * **New stage code the RUNBOOK described but the repository lacked**: `pipeline/draw.py` (stage 1,
   config-driven Europe PMC draw, flag-not-exclude contamination, stratified dry-run sampling),
   `pipeline/screen.py` (stage 3, two arms + `reconcile()` as a pure function so a comparator fix
@@ -146,14 +152,14 @@ Known gaps left open (see the report): the prompt template still carries two POT
 (`Flagged COVID-related` header, `is_covid_associated`); `helpers.screen_instrument_alarm` is
 degenerate on an anchor-drawn roster (rule off-topic is 0 by construction); the in-pipeline
 `ground_findings_df` still emits the bare `authority_lookup_ols_hp` tag (invariant 9 fired on the
-worker columns for 1 MPATH id — the stage-5 retag is what passes); the worker saves a unit's
+worker columns for 1 MPATH id: the stage-5 retag is what passes); the worker saves a unit's
 findings all-or-nothing; `fetch_fulltext` + `get_ft_text` fetch every full text twice; the
 templates under `packaging/templates/*.tmpl` are POTS prose and are not used by the generic builder.
 
 ## Licence
 
-- **Code** (`pipeline/`, `calibration/`, `build_packages.py`): MIT — see `LICENSE`.
-- **Documentation** (`*.md`, `config/*.yaml`): CC BY 4.0 — see `LICENSE-docs`.
+- **Code** (`pipeline/`, `calibration/`, `build_packages.py`): MIT: see `LICENSE`.
+- **Documentation** (`*.md`, `config/*.yaml`): CC BY 4.0: see `LICENSE-docs`.
 
 The verbatim provenance excerpts in any corpus built with this method are the publishers' and
 authors' copyright and are not covered by either licence; `PACKAGING.md` states the excerpt
