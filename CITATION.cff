@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+title: "condition-findings-builder"
+message: "If you use this method, please cite it."
+type: software
+authors:
+  - family-names: "Magennis"
+    given-names: "Erin"
+date-released: "2026-10-22"
+license: MIT
+repository-code: "https://github.com/erinmagennis/condition-findings-builder"
+keywords: [dysautonomia, ehlers-danlos, research-findings, open-data]
+abstract: >-
+  Method for building grounded, verifiable findings datasets from the biomedical literature of one condition area:
+  retrieval, screening, extraction with verbatim quotes, identifier lookup at the authorities, checks with negative
+  controls, packaging and a shipped verifier. Documentation is licensed CC BY 4.0 (LICENSE-docs).

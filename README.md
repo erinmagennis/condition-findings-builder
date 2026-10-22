@@ -167,6 +167,5 @@ policy a corpus must publish.
 
 ## Citation
 
-Cite the method repository and, for any finding that matters to your work, the source paper. A
-`CITATION.cff` will be added when the repository DOI is minted (`grep -r PLACEHOLDER .` before
-deposit).
+Cite the method repository and, for any finding that matters to your work, the source paper. See
+`CITATION.cff`. A DOI will be added when the repository is deposited.
