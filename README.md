@@ -23,7 +23,7 @@ Credit: Erin Magennis. Code under MIT, documentation under CC BY 4.0 (see Licenc
 Each was paid for on the POTS build; the measured cost is in `PITFALLS.md`.
 
 1. **The model emits names; the pipeline resolves identifiers.** A build that asked the model for ids got
-   34.7% of them pointing at a different entity than the one named (full-population lookup, pots-findings v1.2 benchmark). `pipeline/resolver.py` derives every id from the name against the real
+   34.7% of them pointing at a different entity than the one named (every model-written id in POTS Tiers 1-2 looked up at its authority; source: `benchmarks/POTS_MODEL_ID_BENCHMARK.md` and `.json` in [pots-findings](https://github.com/erinmagennis/pots-findings)). `pipeline/resolver.py` derives every id from the name against the real
    authority, exact label only, and records which authority and which match path.
 2. **Retain the text you extracted from.** Three tiers discarded body text; 108,549 of 148,186 (recomputed from the data at every build; a stale handoff said 108,714)
    rows are permanently uncheckable. `retain_source_text: true` is enforced by the config
